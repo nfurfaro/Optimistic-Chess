@@ -1,0 +1,9 @@
+[project]
+authors = ["Fuel Labs <contact@fuel.sh>"]
+entry = "main.sw"
+license = "Apache-2.0"
+name = "chess_contract"
+
+[dependencies]
+lib_chess = {path = "../lib_chess"}
+chess_abi = {path = "../chess_abi"}

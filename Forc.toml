@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "project/lib_chess",
+    "project/chess_contract",
+    "project/chess_abi"
+]
