@@ -243,7 +243,7 @@ impl Board {
                 }
             };
 
-            let color = if mask & self.bitboard.black == 0 {
+            let color = if mask & self.bitboard.colors[BLACK] == 0 {
                 BLACK
             } else {
                 WHITE
@@ -337,6 +337,11 @@ impl Board {
         if half_move > 0 && half_move % 2 == 0 {
             self.increment_full_move_counter();
         };
+
+
+        // if pawn_moved || piece_captured {
+        //     self.reset_half_move_counter();
+        // }
         // update en_passant if needed
         if move.dest.to_index() == self.en_passant_target().to_index()
         {

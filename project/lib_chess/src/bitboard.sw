@@ -24,8 +24,7 @@ pub struct BitBoard {
     rooks: u64,
     queens: u64,
     kings: u64,
-    black: u64,
-    white: u64,
+    colors: [u64; 2],
     all: u64,
 }
 
@@ -56,8 +55,7 @@ impl BitBoard {
             | WHITE_QUEEN,
             kings: BLACK_KING
             | WHITE_KING,
-            black: BLACK_PIECES,
-            white: WHITE_PIECES,
+            colors: [BLACK_PIECES, WHITE_PIECES],
             all: ALL_PIECES,
         }
     }

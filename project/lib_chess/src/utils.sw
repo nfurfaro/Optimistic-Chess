@@ -2,6 +2,11 @@ library utils;
 
 use std::constants::ZERO_B256;
 
+pub fn enumerate_bits(bitmap: u64) -> Option<u64> {
+    // TODO: Implement me !
+    Option::Some(0)
+}
+
 /// Build a single b256 value from a tuple of 4 u64 values.
 pub fn compose(words: (u64, u64, u64, u64)) -> b256 {
     asm(r1: __addr_of(words)) { r1: b256 }
