@@ -10,5 +10,6 @@ dep special;
 dep square;
 dep move;
 dep events;
+dep validator;
 
 use std::constants::ZERO_B256;
