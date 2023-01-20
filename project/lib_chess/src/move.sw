@@ -17,11 +17,21 @@ pub struct Move {
     source: Square,
     dest: Square,
     promotion: Option<Piece>,
-    sequence: u64       // seq must always be >= to stored seq for this game: https://programtheblockchain.com/posts/2018/05/11/state-channels-for-two-player-games/
+    sequence: u64,       // seq must always be >= to stored seq for this game: https://programtheblockchain.com/posts/2018/05/11/state-channels-for-two-player-games/
 }
 
 impl Move {
-    pub fn build(target: ContractId, nonce: u64, game_id: b256, piecemap: b256, metadata: u64, src: Square, dest: Square, promotion: Option<Piece>, seq: u64) -> Move {
+    pub fn build(
+        target: ContractId,
+        nonce: u64,
+        game_id: b256,
+        piecemap: b256,
+        metadata: u64,
+        src: Square,
+        dest: Square,
+        promotion: Option<Piece>,
+        seq: u64,
+    ) -> Move {
         Move {
             target: target,
             nonce: nonce,
@@ -33,6 +43,15 @@ impl Move {
             promotion: promotion,
             sequence: seq,
         }
+    }
+
+    pub fn is_castling(self) -> bool {
+        // TODO: Implement me !
+        false
+    }
+    pub fn is_en_passant(self) -> bool {
+        // TODO: Implement me !
+        false
     }
 }
 

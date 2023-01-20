@@ -54,6 +54,20 @@ impl Square {
     }
 }
 
+impl Square {
+    pub fn from_rank_and_file(rank_index: u64, file_index: u64) -> Result<Square, ChessError> {
+        Square::from_index(8 * rank_index + file_index)
+    }
+
+    pub fn file_index(self) -> u64 {
+        self.to_index() & 7
+    }
+
+    pub fn rank_index(self) -> u64 {
+        self.to_index() >> 3
+    }
+}
+
 // impl core::ops::Eq for Square {
 //     fn eq(self, other: Self) -> bool {
 //         match (self, other) {

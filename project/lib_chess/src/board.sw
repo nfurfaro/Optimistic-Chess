@@ -124,6 +124,7 @@ impl Board {
         (self.metadata & FULL_MOVE_MASK) >> 32
     }
 
+    // TODO: consider moving en_passant methods to Game? It must persist for 2 half moves
     pub fn en_passant_target(self) -> Square {
         Square::from_index((self.metadata & EN_PASSANT_MASK) >> 16).unwrap()
     }
@@ -337,7 +338,6 @@ impl Board {
         if half_move > 0 && half_move % 2 == 0 {
             self.increment_full_move_counter();
         };
-
 
         // if pawn_moved || piece_captured {
         //     self.reset_half_move_counter();

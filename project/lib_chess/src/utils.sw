@@ -2,10 +2,22 @@ library utils;
 
 use std::constants::ZERO_B256;
 
-pub fn enumerate_bits(bitmap: u64) -> Option<u64> {
-    // TODO: Implement me !
-    Option::Some(0)
+impl u64 {
+   pub fn enumerate_bits(bitmap: u64) -> Option<u64> {
+    let mut n = 0;
+    let mut b = bitmap;
+    while b != 0 {
+        n += 1;
+        b = b & (b - 1);
+    };
+    match n {
+        0 => Option::None,
+        _ => Option::Some(n),
+    }
 }
+}
+
+
 
 /// Build a single b256 value from a tuple of 4 u64 values.
 pub fn compose(words: (u64, u64, u64, u64)) -> b256 {
@@ -95,4 +107,19 @@ fn test_multimask() {
     assert(m63 == 0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
 }
 
+#[test()]
+fn test_enumerate_bits() {
+    let n1 = u64::enumerate_bits(u64::max());
+    let n2 = u64::enumerate_bits(u64::min());
+    let n3 = u64::enumerate_bits(1);
+    let n4 = u64::enumerate_bits(0b011010011);
+    let n5 = u64::enumerate_bits(0b011010011011010011011011011011010011011011011);
 
+    assert(n1.is_some());
+    assert(n2.is_none());
+    assert(n3.is_some());
+    assert(n1.unwrap() == 64);
+    assert(n3.unwrap() == 1);
+    assert(n4.unwrap() == 5);
+    assert(n5.unwrap() == 27);
+}
