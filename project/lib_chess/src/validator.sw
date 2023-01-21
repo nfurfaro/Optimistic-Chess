@@ -1,5 +1,7 @@
 library validator;
 
+dep bitboard;
+dep bitmaps;
 dep board;
 dep errors;
 dep game;
@@ -8,6 +10,8 @@ dep piece;
 dep square;
 dep utils;
 
+use bitboard::BitBoard;
+use bitmaps::*;
 use board::Board;
 use errors::ChessError;
 use game::{Game, Status};
@@ -56,6 +60,132 @@ fn is_legal_move(board: Board, move: Move) -> bool {
     true
 }
 
+fn pawn_attacks(bits: BitBoard, color: u64) -> u64 {
+    match color {
+        BLACK => ((board.bitboard.black_pawns >> 7) & !FILE_H) | ((board.bitboard.black_pawns >> 9) & !FILE_A),
+        WHITE => ((board.bitboard.white_pawns << 7) & !FILE_H) | ((board.bitboard.white_pawns << 9) & !FILE_A),
+        _ => revert(0),
+    }
+}
+
+fn is_on_edge(bitmap: u64) -> bool {
+    (bitmap & EDGES) != 0
+}
+
+fn is_on_corner(bitmap: u64) -> bool {
+    (bitmap & CORNERS) != 0
+}
+
+fn is_on_rank_1(bitmap: u64) -> bool {
+    (bitmap & RANK_1) != 0
+}
+
+fn is_on_rank_8(bitmap: u64) -> bool {
+    (bitmap & RANK_8) != 0
+}
+
+fn is_on_file_a(bitmap: u64) -> bool {
+    (bitmap & FILE_A) != 0
+}
+
+fn is_on_file_h(bitmap: u64) -> bool {
+    (bitmap & FILE_H) != 0
+}
+
+// this will determine valid king moves from the bitboard alone.
+// if I use the Move here, this can be vastly simplified because it tells us exactly where the king starts from. Howeve, we may need this to tell us the opponents king attacks to generate a threat map, so it needs to be general purpose.
+// fn king_attacks(bits: BitBoard, color: u64) -> u64 {
+//     let king = bits.kings & bits.colors[color];
+//     // TODO: filter out duplicates somehow
+//     // ise match if possible
+//     if is_on_edge(king) {
+//         // king is on an edge and can attack at most 5 squares
+//         // determine which edge
+//         if is_on_rank_1(king) {
+//             // king is on Rank 1
+//             if is_on_file_a(king) {
+//                 // king is on corner a1
+//                 (king << 8) | (king << 9) | (king << 1)
+//             } else if is_on_file_h(king) {
+//                 // king is on corner h1
+//                 (king >> 1) (king << 7) | (king << 8)
+//             } else {
+//                 // king is not on a corner
+//                 (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1)
+//             }
+//         } else if is_on_file_a(king) {
+//             // king is on File A
+//             if is_on_rank_1(king) {
+//                 // king is on corner a1
+//                 (king << 8) | (king << 9) | (king << 1)
+
+//             } else if is_on_rank_8(king) {
+//                 // king is on corner a8
+//                 (king >> 8) |(king << 1) | (king >> 7)
+//             } else {
+//                 // king is not on a corner
+//                 (king >> 8) | (king << 8) | (king << 9) | (king << 1) | (king >> 7)
+//             }
+//         } else if is_on_rank_8(king) {
+//             // king is on Rank 8
+//             if is_on_file_a(king) {
+//                 // king is on corner a8
+//                 (king >> 8) |(king << 1) | (king >> 7)
+//             } else if is_on_file_h(king) {
+//                 // king is on corner h8
+//                 (king >> 8) | (king >> 9) | (king >> 1)
+//             } else {
+//                 // king is not on a corner
+//                 (king >> 8) | (king >> 9) | (king >> 1) | (king << 1) | (king >> 7)
+//             }
+//         } else  {
+//             // king is on File H
+//             if is_on_rank_1(king) {
+//                 // king is on corner h1
+//                 (king >> 1) (king << 7) | (king << 8)
+//             } else if is_on_rank_8(king) {
+//                 // king is on corner h8
+//                 (king >> 8) | (king >> 9) | (king >> 1)
+//             } else {
+//                 // king is not on a corner
+//                 (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8)
+//             }
+//         }
+//     } else {
+//         // king is on a non-edge square and can attack 8 squares
+//         (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7)
+//     }
+// }
+
+fn king_attacks(bits: BitBoard, color: u64) -> u64 {
+    let king = bits.kings & bits.colors[color];
+    let rank_1 = is_on_rank_1(king);
+    let file_a = is_on_file_a(king);
+    let rank_8 = is_on_rank_8(king);
+    let file_h = is_on_file_h(king);
+
+    match (rank_1, file_a, rank_8, file_h) {
+        // a1 corner: can attack 3 squares
+        (true, true, false, false) => (king << 8) | (king << 9) | (king << 1),
+        // a8 corner: can attack 3 squares
+        (false, true, true, false) => (king >> 8) |(king << 1) | (king >> 7),
+        // h8 corner: can attack 3 squares
+        (false, false, true, true) => (king >> 8) | (king >> 9) | (king >> 1),
+        // h1 corner: can attack 3 squares
+        (true, false, false, true) => (king >> 1) (king << 7) | (king << 8),
+        // rank 1: can attack 5 squares
+        (true, false, false, false) => (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1),
+        // file a: can attack 5 squares
+        (false, true, false, false) => (king >> 8) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+        // rank 8: can attack 5 squares
+        (false, false, true, false) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 1) | (king >> 7),
+        // file h: can attack 5 squares
+        (false, false, false, true) => (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8),
+        // king is not on an edge square: can attack 8 squares
+        (false, false, false, false) => (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+    }
+}
+
 /** Shared legality checks:
     - a player can only move their own piece
     assert(own_color_moved());
@@ -64,7 +194,13 @@ fn is_legal_move(board: Board, move: Move) -> bool {
 
 */
 
-fn pawn_validation(move: Move) {
+fn pawn_validation(move: Move, board: Board) {
+    // get pawn possible attacks
+    // add en_passant
+    let white_pawn_attacks = pawn_attacks(board.bitboard, WHITE);
+    let black_pawn_attacks = pawn_attacks(board.bitboard, BLACK);
+
+
     // if File == File::A  {
                 // there can be no captures to the west
             // }

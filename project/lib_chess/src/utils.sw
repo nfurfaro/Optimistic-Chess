@@ -2,6 +2,7 @@ library utils;
 
 use std::constants::ZERO_B256;
 
+// returns the number of set bits in a bitmap.
 impl u64 {
    pub fn enumerate_bits(bitmap: u64) -> Option<u64> {
     let mut n = 0;
