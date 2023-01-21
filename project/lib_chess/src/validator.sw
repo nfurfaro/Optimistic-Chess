@@ -16,7 +16,7 @@ use board::Board;
 use errors::ChessError;
 use game::{Game, Status};
 use move::Move;
-use piece::Piece;
+use piece::{BLACK, Piece, WHITE};
 use square::Square;
 // use utils::enumerate_bits;
 
@@ -33,12 +33,12 @@ Square Numbering
 08 09 10 11 12 13 14 15
 00 01 02 03 04 05 06 07
 
-noWe         nort         noEa
-          +7    +8    +9
+  noWe         nort         noEa
+        << 7   << 8   << 9
               \  |  /
-  west    -1 <-  0 -> +1    east
+  west  >> 1 <-  0 -> << 1  east
               /  |  \
-          -9    -8    -7
+        >> 9  >> 8    >> 7
   soWe         sout         soEa
 
 */
@@ -50,22 +50,14 @@ fn rank_delta() {}
 fn is_legal_move(board: Board, move: Move) -> bool {
     let (color, piece) = board.read_square(move.source.to_index());
     match piece {
-        Piece::Pawn => pawn_validation(move),
-        Piece::Bishop => bishop_validation(move),
-        Piece::Rook => rook_validation(move),
-        Piece::Knight => knight_validation(move),
-        Piece::Queen => queen_validation(move),
-        Piece::King => king_validation(move),
+        Piece::Pawn => pawn_validation(board, move),
+        Piece::Bishop => bishop_validation(board, move),
+        Piece::Rook => rook_validation(board, move),
+        Piece::Knight => knight_validation(board, move),
+        Piece::Queen => queen_validation(board, move),
+        Piece::King => king_validation(board, move),
     };
     true
-}
-
-fn pawn_attacks(bits: BitBoard, color: u64) -> u64 {
-    match color {
-        BLACK => ((board.bitboard.black_pawns >> 7) & !FILE_H) | ((board.bitboard.black_pawns >> 9) & !FILE_A),
-        WHITE => ((board.bitboard.white_pawns << 7) & !FILE_H) | ((board.bitboard.white_pawns << 9) & !FILE_A),
-        _ => revert(0),
-    }
 }
 
 fn is_on_edge(bitmap: u64) -> bool {
@@ -92,70 +84,37 @@ fn is_on_file_h(bitmap: u64) -> bool {
     (bitmap & FILE_H) != 0
 }
 
-// this will determine valid king moves from the bitboard alone.
-// if I use the Move here, this can be vastly simplified because it tells us exactly where the king starts from. Howeve, we may need this to tell us the opponents king attacks to generate a threat map, so it needs to be general purpose.
-// fn king_attacks(bits: BitBoard, color: u64) -> u64 {
-//     let king = bits.kings & bits.colors[color];
-//     // TODO: filter out duplicates somehow
-//     // ise match if possible
-//     if is_on_edge(king) {
-//         // king is on an edge and can attack at most 5 squares
-//         // determine which edge
-//         if is_on_rank_1(king) {
-//             // king is on Rank 1
-//             if is_on_file_a(king) {
-//                 // king is on corner a1
-//                 (king << 8) | (king << 9) | (king << 1)
-//             } else if is_on_file_h(king) {
-//                 // king is on corner h1
-//                 (king >> 1) (king << 7) | (king << 8)
-//             } else {
-//                 // king is not on a corner
-//                 (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1)
-//             }
-//         } else if is_on_file_a(king) {
-//             // king is on File A
-//             if is_on_rank_1(king) {
-//                 // king is on corner a1
-//                 (king << 8) | (king << 9) | (king << 1)
+fn threat_map(bits: BitBoard, color: u64) -> u64 {
+     pawn_attacks(bits, color) | bishop_attacks(bits, color) | rook_attacks(bits, color) | knight_attacks(bits, color) | queen_attacks(bits, color) | king_attacks(bits, color)
+}
 
-//             } else if is_on_rank_8(king) {
-//                 // king is on corner a8
-//                 (king >> 8) |(king << 1) | (king >> 7)
-//             } else {
-//                 // king is not on a corner
-//                 (king >> 8) | (king << 8) | (king << 9) | (king << 1) | (king >> 7)
-//             }
-//         } else if is_on_rank_8(king) {
-//             // king is on Rank 8
-//             if is_on_file_a(king) {
-//                 // king is on corner a8
-//                 (king >> 8) |(king << 1) | (king >> 7)
-//             } else if is_on_file_h(king) {
-//                 // king is on corner h8
-//                 (king >> 8) | (king >> 9) | (king >> 1)
-//             } else {
-//                 // king is not on a corner
-//                 (king >> 8) | (king >> 9) | (king >> 1) | (king << 1) | (king >> 7)
-//             }
-//         } else  {
-//             // king is on File H
-//             if is_on_rank_1(king) {
-//                 // king is on corner h1
-//                 (king >> 1) (king << 7) | (king << 8)
-//             } else if is_on_rank_8(king) {
-//                 // king is on corner h8
-//                 (king >> 8) | (king >> 9) | (king >> 1)
-//             } else {
-//                 // king is not on a corner
-//                 (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8)
-//             }
-//         }
-//     } else {
-//         // king is on a non-edge square and can attack 8 squares
-//         (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7)
-//     }
-// }
+fn pawn_attacks(bits: BitBoard, color: u64) -> u64 {
+    match color {
+        BLACK => ((bits.black_pawns >> 7) & !FILE_H) | ((bits.black_pawns >> 9) & !FILE_A),
+        WHITE => ((bits.white_pawns << 7) & !FILE_H) | ((bits.white_pawns << 9) & !FILE_A),
+        _ => revert(0),
+    }
+}
+
+fn bishop_attacks(bits: BitBoard, color: u64) -> u64 {
+    // TODO: Implement me !
+    0
+}
+
+fn rook_attacks(bits: BitBoard, color: u64) -> u64 {
+    // TODO: Implement me !
+    0
+}
+
+fn knight_attacks(bits: BitBoard, color: u64) -> u64 {
+    // TODO: Implement me !
+    0
+}
+
+fn queen_attacks(bits: BitBoard, color: u64) -> u64 {
+    // TODO: Implement me !
+    0
+}
 
 fn king_attacks(bits: BitBoard, color: u64) -> u64 {
     let king = bits.kings & bits.colors[color];
@@ -168,21 +127,22 @@ fn king_attacks(bits: BitBoard, color: u64) -> u64 {
         // a1 corner: can attack 3 squares
         (true, true, false, false) => (king << 8) | (king << 9) | (king << 1),
         // a8 corner: can attack 3 squares
-        (false, true, true, false) => (king >> 8) |(king << 1) | (king >> 7),
+        (false, true, true, false) => (king >> 8) | (king << 1) | (king >> 7),
         // h8 corner: can attack 3 squares
         (false, false, true, true) => (king >> 8) | (king >> 9) | (king >> 1),
         // h1 corner: can attack 3 squares
-        (true, false, false, true) => (king >> 1) (king << 7) | (king << 8),
+        (true, false, false, true) => (king >> 1) | (king << 7) | (king << 8),
         // rank 1: can attack 5 squares
-        (true, false, false, false) => (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1),
+        (true, false, false, false) => (king >> 1) | (king << 7) | (king << 8) | (king << 9) | (king << 1),
         // file a: can attack 5 squares
         (false, true, false, false) => (king >> 8) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
         // rank 8: can attack 5 squares
         (false, false, true, false) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 1) | (king >> 7),
         // file h: can attack 5 squares
-        (false, false, false, true) => (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8),
+        (false, false, false, true) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 7) | (king << 8),
         // king is not on an edge square: can attack 8 squares
-        (false, false, false, false) => (king >> 8) | (king >> 9) | (king >> 1) (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+        (false, false, false, false) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+        _ => revert(0),
     }
 }
 
@@ -194,8 +154,8 @@ fn king_attacks(bits: BitBoard, color: u64) -> u64 {
 
 */
 
-fn pawn_validation(move: Move, board: Board) {
-    // get pawn possible attacks
+fn pawn_validation(board: Board, move: Move) {
+    // get pawn possible moves
     // add en_passant
     let white_pawn_attacks = pawn_attacks(board.bitboard, WHITE);
     let black_pawn_attacks = pawn_attacks(board.bitboard, BLACK);
@@ -215,68 +175,80 @@ fn pawn_validation(move: Move, board: Board) {
             // }
             assert(move.dest.to_index() == move.source.to_index() + 7 || move.dest.to_index() == move.source.to_index() + 8 || move.dest.to_index() == move.source.to_index() + 9 || move.dest.to_index() == move.source.to_index() + 15 || move.dest.to_index() == move.source.to_index() + 16 || move.dest.to_index() == move.source.to_index() + 17);
 
-}
-
-fn bishop_validation(move: Move) {}
-fn rook_validation(move: Move) {}
-fn knight_validation(move: Move) {}
-fn queen_validation(move: Move) {}
-fn king_validation(move: Move) {}
-
-pub fn validate(game: Game, move: Move) -> bool {
-    let side_to_move = game.board.side_to_move();
-    let (color_moved, piece) = game.board.read_square(move.source.to_index());
-    assert(color_moved == side_to_move);
-
-    // generally, check metadata before checking move legality based on movement patterns, i.e: perform the cheapet checks first!
-    // check game status ! don't bother validating moves if game is over
-    match game.status {
-        Status::Active => (),
-        _ => return false,
-    };
-
-    // src & dest must be valid squares
-    // if source and dest are of type Square, they can only be valid squares!
-    // assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
     // if move is a pawn promotion:
     //   - check that pawn can legally move to the 8th rank.
     //   - check that selected replacement piece has been captured already.
     if let Option::Some(p) = move.promotion {
             // check that selected replacement piece has been captured already.
         match p {
-            Piece::Queen => assert(game.board.bitboard.queens & game.board.bitboard.colors[side_to_move] == 0),
-            Piece::Rook => assert(u64::enumerate_bits(game.board.bitboard.rooks & game.board.bitboard.colors[side_to_move]).unwrap() < 2),
-            Piece::Bishop => assert(u64::enumerate_bits(game.board.bitboard.bishops & game.board.bitboard.colors[side_to_move]).unwrap() < 2),
-            Piece::Knight => assert(u64::enumerate_bits(game.board.bitboard.knights & game.board.bitboard.colors[side_to_move]).unwrap() < 2),
+            Piece::Queen => assert(board.bitboard.queens & board.bitboard.colors[board.side_to_move()] == 0),
+            Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
+            Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
+            Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
             _ => (),
         }
     };
-
-    // is move a castle? check rights & legality
-    // is there a piece on src?
-    // does it belong to current side to move?
-    // if piece on dest, is it opposite colour?
-    // check en_passant target
-    // can piece legally move to dest?
-    //   - allowed movements for piece-type
-    //   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
-    //   - blocking pieces on squares between?
-    // check that piece_map is not empty
-    // check that metadata is not empty
-    // check game.statehash to know if we need to generate bitboards or not
-    // check full-move counter. At 50, the game automatically ends in a draw, unless the 50th move is a checkmate
-    // if castling, check castling rights
-    // if castling, check legality
-
-    // if move.is_castling() {
-        // check legality
-        // check metadata for castling rights
-    // };
-
+    // check en_passant target:
     // if move.is_en_passant() {
         // check legality
         // check metadata for en_passant target, ensure match with move.dest
     // };
+
+}
+
+fn bishop_validation(board: Board, move: Move) {
+    // TODO: Implement me !
+}
+
+fn rook_validation(board: Board, move: Move) {
+    // TODO: Implement me !
+}
+
+fn knight_validation(board: Board, move: Move) {
+    // TODO: Implement me !
+}
+
+fn queen_validation(board: Board, move: Move) {
+    // TODO: Implement me !
+}
+
+fn king_validation(board: Board, move: Move) {
+    // TODO: Implement me !
+    // if move.is_castling() {
+        // check legality
+        // check metadata for castling rights
+    // };
+}
+
+// validation checks common to all pieces and colors
+fn universal_validation_checks() {
+    // TODO: Implement me !
+
+    // perform the cheapest checks first!
+    // check game.statehash to know if we need to generate bitboards or not
+    // check game status ! don't bother validating moves if game is over
+    // check metadata
+    // src & dest must be valid squares
+    // if source and dest are of type Square, they can only be valid squares!
+    // assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
+    // is move a castle? check rights & legality
+    // is there a piece on src?
+    // does it belong to current side to move?
+    // if piece on dest, is it opposite colour?
+    //   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
+    //   - blocking pieces on squares between?
+    // check full-move counter. At 50, the game automatically ends in a draw, unless the 50th move is a checkmate
+}
+
+pub fn validate(game: Game, move: Move) -> bool {
+    let side_to_move = game.board.side_to_move();
+    let (color_moved, piece) = game.board.read_square(move.source.to_index());
+    assert(color_moved == side_to_move);
+
+    match game.status {
+        Status::Active => (),
+        _ => return false,
+    };
 
     true
 }
