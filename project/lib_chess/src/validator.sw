@@ -1,6 +1,7 @@
 library validator;
 
 dep bitboard;
+dep color;
 dep bitmaps;
 dep board;
 dep errors;
@@ -11,12 +12,13 @@ dep square;
 dep utils;
 
 use bitboard::BitBoard;
+use color::{BLACK, Color, WHITE};
 use bitmaps::*;
 use board::Board;
 use errors::ChessError;
 use game::{Game, Status};
 use move::Move;
-use piece::{BLACK, Piece, WHITE};
+use piece::Piece;
 use square::Square;
 // use utils::enumerate_bits;
 
@@ -84,64 +86,68 @@ fn is_on_file_h(bitmap: u64) -> bool {
     (bitmap & FILE_H) != 0
 }
 
-fn threat_map(bits: BitBoard, color: u64) -> u64 {
+fn threat_map(bits: BitBoard, color: Color) -> u64 {
      pawn_attacks(bits, color) | bishop_attacks(bits, color) | rook_attacks(bits, color) | knight_attacks(bits, color) | queen_attacks(bits, color) | king_attacks(bits, color)
 }
 
-fn pawn_attacks(bits: BitBoard, color: u64) -> u64 {
+fn pawn_attacks(bits: BitBoard, color: Color) -> u64 {
     match color {
-        BLACK => ((bits.black_pawns >> 7) & !FILE_H) | ((bits.black_pawns >> 9) & !FILE_A),
-        WHITE => ((bits.white_pawns << 7) & !FILE_H) | ((bits.white_pawns << 9) & !FILE_A),
+        Color::Black => ((bits.black_pawns >> 7) & !FILE_H) | ((bits.black_pawns >> 9) & !FILE_A),
+        Color::White => ((bits.white_pawns << 7) & !FILE_H) | ((bits.white_pawns << 9) & !FILE_A),
         _ => revert(0),
     }
 }
 
-fn bishop_attacks(bits: BitBoard, color: u64) -> u64 {
+fn bishop_attacks(bits: BitBoard, color: Color) -> u64 {
     // TODO: Implement me !
     0
 }
 
-fn rook_attacks(bits: BitBoard, color: u64) -> u64 {
+fn rook_attacks(bits: BitBoard, color: Color) -> u64 {
     // TODO: Implement me !
     0
 }
 
-fn knight_attacks(bits: BitBoard, color: u64) -> u64 {
+fn knight_attacks(bits: BitBoard, color: Color) -> u64 {
     // TODO: Implement me !
     0
 }
 
-fn queen_attacks(bits: BitBoard, color: u64) -> u64 {
+fn queen_attacks(bits: BitBoard, color: Color) -> u64 {
     // TODO: Implement me !
     0
 }
 
-fn king_attacks(bits: BitBoard, color: u64) -> u64 {
-    let king = bits.kings & bits.colors[color];
-    let rank_1 = is_on_rank_1(king);
-    let file_a = is_on_file_a(king);
-    let rank_8 = is_on_rank_8(king);
-    let file_h = is_on_file_h(king);
+fn king_attacks(bits: BitBoard, color: Color) -> u64 {
+    let king_bit = match color {
+        Color::Black => bits.kings & bits.black,
+        Color::White => bits.kings & bits.white,
+    };
+
+    let rank_1 = is_on_rank_1(king_bit);
+    let file_a = is_on_file_a(king_bit);
+    let rank_8 = is_on_rank_8(king_bit);
+    let file_h = is_on_file_h(king_bit);
 
     match (rank_1, file_a, rank_8, file_h) {
         // a1 corner: can attack 3 squares
-        (true, true, false, false) => (king << 8) | (king << 9) | (king << 1),
+        (true, true, false, false) => (king_bit << 8) | (king_bit << 9) | (king_bit << 1),
         // a8 corner: can attack 3 squares
-        (false, true, true, false) => (king >> 8) | (king << 1) | (king >> 7),
+        (false, true, true, false) => (king_bit >> 8) | (king_bit << 1) | (king_bit >> 7),
         // h8 corner: can attack 3 squares
-        (false, false, true, true) => (king >> 8) | (king >> 9) | (king >> 1),
+        (false, false, true, true) => (king_bit >> 8) | (king_bit >> 9) | (king_bit >> 1),
         // h1 corner: can attack 3 squares
-        (true, false, false, true) => (king >> 1) | (king << 7) | (king << 8),
+        (true, false, false, true) => (king_bit >> 1) | (king_bit << 7) | (king_bit << 8),
         // rank 1: can attack 5 squares
-        (true, false, false, false) => (king >> 1) | (king << 7) | (king << 8) | (king << 9) | (king << 1),
+        (true, false, false, false) => (king_bit >> 1) | (king_bit << 7) | (king_bit << 8) | (king_bit << 9) | (king_bit << 1),
         // file a: can attack 5 squares
-        (false, true, false, false) => (king >> 8) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+        (false, true, false, false) => (king_bit >> 8) | (king_bit << 8) | (king_bit << 9) | (king_bit << 1) | (king_bit >> 7),
         // rank 8: can attack 5 squares
-        (false, false, true, false) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 1) | (king >> 7),
+        (false, false, true, false) => (king_bit >> 8) | (king_bit >> 9) | (king_bit >> 1) | (king_bit << 1) | (king_bit >> 7),
         // file h: can attack 5 squares
-        (false, false, false, true) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 7) | (king << 8),
+        (false, false, false, true) => (king_bit >> 8) | (king_bit >> 9) | (king_bit >> 1) | (king_bit << 7) | (king_bit << 8),
         // king is not on an edge square: can attack 8 squares
-        (false, false, false, false) => (king >> 8) | (king >> 9) | (king >> 1) | (king << 7) | (king << 8) | (king << 9) | (king << 1) | (king >> 7),
+        (false, false, false, false) => (king_bit >> 8) | (king_bit >> 9) | (king_bit >> 1) | (king_bit << 7) | (king_bit << 8) | (king_bit << 9) | (king_bit << 1) | (king_bit >> 7),
         _ => revert(0),
     }
 }
@@ -179,13 +185,25 @@ fn pawn_validation(board: Board, move: Move) {
     //   - check that pawn can legally move to the 8th rank.
     //   - check that selected replacement piece has been captured already.
     if let Option::Some(p) = move.promotion {
-            // check that selected replacement piece has been captured already.
-        match p {
-            Piece::Queen => assert(board.bitboard.queens & board.bitboard.colors[board.side_to_move()] == 0),
-            Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
-            Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
-            Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.colors[board.side_to_move()]).unwrap() < 2),
-            _ => (),
+        // check that selected replacement piece has been captured already.
+        let color = board.side_to_move();
+        if let Color::Black = color {
+             match p {
+                Piece::Queen => assert(board.bitboard.queens & board.bitboard.black == 0),
+                Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.black).unwrap() < 2),
+                Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.black).unwrap() < 2),
+                Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.black).unwrap() < 2),
+                _ => (),
+            }
+        } else {
+            // color is white
+            match p {
+                Piece::Queen => assert(board.bitboard.queens & board.bitboard.white == 0),
+                Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.white).unwrap() < 2),
+                Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.white).unwrap() < 2),
+                Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.white).unwrap() < 2),
+                _ => (),
+            }
         }
     };
     // check en_passant target:

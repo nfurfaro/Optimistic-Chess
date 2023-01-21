@@ -1,5 +1,8 @@
 library bitmaps;
 
+// TODO: Add a Bitmap struct (use a tuple struct when available)
+
+
 // Primary bitmaps
 pub const BLACK_PAWNS: u64 = 0x00FF000000000000;
 pub const BLACK_ROOKS: u64 = 0x8100000000000000;

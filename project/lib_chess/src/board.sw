@@ -1,6 +1,7 @@
 library board;
 
 dep bitboard;
+dep color;
 dep errors;
 dep move;
 dep piece;
@@ -9,9 +10,10 @@ dep square;
 dep utils;
 
 use bitboard::BitBoard;
+use color::{BLACK, Color, WHITE};
 use errors::*;
 use move::Move;
-use piece::{BISHOP, BLACK, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK, WHITE};
+use piece::{BISHOP, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK};
 use special::CastleRights;
 use square::Square;
 use utils::{b256_multimask, compose, decompose, multi_bit_mask, query_bit, toggle_bit, turn_on_bit};
@@ -106,11 +108,11 @@ impl Board {
 }
 
 impl Board {
-    pub fn write_square_to_piecemap(mut self, color: u64, piece: Piece, dest: Square) {
+    pub fn write_square_to_piecemap(mut self, color: Color, piece: Piece, dest: Square) {
         self.clear_square(dest);
         let mut index = dest.to_index();
         // set the "color" bit in the piece code
-        let colored_piece = piece.to_u64() | (color << 4);
+        let colored_piece = piece.to_u64() | (color.to_u64() << 4);
         let mut piece_code = compose((0, 0, 0, (colored_piece)));
         let shifted = piece_code << index;
         self.piecemap = self.piecemap | shifted;
@@ -185,7 +187,7 @@ impl Board {
         self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
     }
 
-    pub fn read_square(self, square_index: u64) -> (u64, Piece) {
+    pub fn read_square(self, square_index: u64) -> (Color, Piece) {
         let mut index = square_index;
         let mut mask = compose((0, 0, 0, multi_bit_mask(4)));
         let piece_code = if index == 0 {
@@ -195,8 +197,8 @@ impl Board {
             let mask = compose((0, 0, 0, multi_bit_mask(index) << index));
             decompose((self.piecemap & mask) >> index).3
         };
-        let color = piece_code >> 4;
-        let piece = Piece::from_u64(piece_code).unwrap();
+        let color = Color::try_from_u64(piece_code >> 4).unwrap();
+        let piece = Piece::try_from_u64(piece_code).unwrap();
         (color, piece)
     }
 }
@@ -244,13 +246,13 @@ impl Board {
                 }
             };
 
-            let color = if mask & self.bitboard.colors[BLACK] == 0 {
+            let color = if mask & self.bitboard.black == 0 {
                 BLACK
             } else {
                 WHITE
             };
 
-            self.write_square_to_piecemap(color, Piece::from_u64(piece).unwrap(), Square::from_index(i).unwrap());
+            self.write_square_to_piecemap(color, Piece::try_from_u64(piece).unwrap(), Square::from_index(i).unwrap());
             i += 1;
         };
     }
@@ -266,8 +268,8 @@ impl Board {
         self.write_square_to_piecemap(color, piece, dest);
     }
 
-    pub fn side_to_move(self) -> u64 {
-        query_bit(self.metadata, 0)
+    pub fn side_to_move(self) -> Color {
+        Color::try_from_u64(query_bit(self.metadata, 0)).unwrap()
     }
 
     pub fn toggle_side_to_move(mut self) {
