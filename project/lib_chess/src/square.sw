@@ -59,11 +59,11 @@ impl Square {
         Square::from_index(8 * rank_index + file_index)
     }
 
-    pub fn file_index(self) -> u64 {
+    pub fn file(self) -> u64 {
         self.to_index() & 7
     }
 
-    pub fn rank_index(self) -> u64 {
+    pub fn rank(self) -> u64 {
         self.to_index() >> 3
     }
 }

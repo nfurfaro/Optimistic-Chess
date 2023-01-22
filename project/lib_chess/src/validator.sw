@@ -20,7 +20,7 @@ use game::{Game, Status};
 use move::Move;
 use piece::Piece;
 use square::Square;
-// use utils::enumerate_bits;
+use utils::turn_on_bit;
 
 /**
 
@@ -35,6 +35,34 @@ Square Numbering
 08 09 10 11 12 13 14 15
 00 01 02 03 04 05 06 07
 
+0  0  0  1  0  0  0  0     3 and 59
+0  0  0  0  0  0  0  0     3 % 8 =  3
+0  0  0  0  0  0  0  0     59 % 8 = 3
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  1  0  0  0  0
+
+0  0  0  0  0  0  0  0     24 and 31
+0  0  0  0  0  0  0  0     24 / 8 = 4
+0  0  0  0  0  0  0  0     31 / 8 = 4
+0  0  0  0  0  0  0  0
+1  0  0  0  0  0  0  1
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+
+0  0  0  0  0  0  0  1     0 and 63 i, i+(9*1), i+(9*2), i+(9*3), ...
+0  0  0  0  0  0  0  0     8, 18, 27:
+0  0  0  0  0  0  0  0     i+(7*1), i+(7*2), i+(7*3)
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0
+1  0  0  0  0  0  0  0
+
+
   noWe         nort         noEa
         << 7   << 8   << 9
               \  |  /
@@ -44,10 +72,109 @@ Square Numbering
   soWe         sout         soEa
 
 */
+// fn squares_between(src: Square, dest: Square) -> Vec<Square> {
+// find all the bit indexes between src and dest as a bitmap.
+fn squares_between(src: Square, dest: Square) -> Option<u64> {
+    let src_idx = src.to_index();
+    let dest_idx = dest.to_index();
+
+    // check that src & dest are points on a line
+    if (src_idx % 8) == (dest_idx % 8) {
+        let mut bitmap = 0;
+        let mut i = src_idx + 8;
+        while i < dest_idx {
+            turn_on_bit(bitmap, i);
+            i += 8;
+        };
+        Option::Some(bitmap)
+    } else if (src_idx / 8) == (dest_idx / 8) {
+        // squares are in the same rank
+        let mut bitmap = 0;
+        let mut i = src_idx + 1;
+        while i < dest_idx {
+            turn_on_bit(bitmap, i);
+            i += 1;
+        };
+        Option::Some(bitmap)
+    } else if file_delta(src, dest) == rank_delta(src, dest) {
+        // squares are in the same diagonal or antidiagonal
+        if src.rank() > dest.rank() {
+            // northerly direction
+            if src.file() > dest.file() {
+                // NW dir, << 7
+                let mut bitmap = 0;
+                let mut i = src_idx + 7;
+                while i < dest_idx {
+                    turn_on_bit(bitmap, i);
+                    i += 7;
+                };
+                Option::Some(bitmap)
+            } else {
+                // NE dir, << 9
+                let mut bitmap = 0;
+                let mut i = src_idx + 9;
+                while i < dest_idx {
+                    turn_on_bit(bitmap, i);
+                    i += 9;
+                };
+                Option::Some(bitmap)
+            }
+        } else {
+            // southerly direction
+            if src.file() > dest.file() {
+                // SW dir, >> 9
+                let mut bitmap = 0;
+                let mut i = src_idx - 7;
+                while i > dest_idx {
+                    turn_on_bit(bitmap, i);
+                    i -= 7;
+                };
+                Option::Some(bitmap)
+            } else {
+                // NE dir, >> 7
+                let mut bitmap = 0;
+                let mut i = src_idx - 9;
+                while i > dest_idx {
+                    turn_on_bit(bitmap, i);
+                    i -= 9;
+                };
+                Option::Some(bitmap)
+            }
+        }
+    } else {
+        // squares are not points on a line
+        Option::None
+    }
+}
+
+fn max(a: u64, b: u64) -> u64 {
+    if a < b {
+        a
+    } else if b > a {
+        b
+    } else {
+        a
+    }
+}
+
+fn min(a: u64, b: u64) -> u64 {
+    if b < a {
+        b
+    } else if a < b {
+        a
+    } else {
+        a
+    }
+}
 
 // fn square_mask() -> u64 {}
-fn file_delta() {}
-fn rank_delta() {}
+fn file_delta(src: Square, dest: Square) -> u64 {
+    max(src.file(), dest.file()) - min(src.file(), dest.file())
+}
+
+fn rank_delta(src: Square, dest: Square) -> u64 {
+    max(src.rank(), dest.rank()) - min(src.rank(), dest.rank())
+}
 
 fn is_legal_move(board: Board, move: Move) -> bool {
     let (color, piece) = board.read_square(move.source.to_index());
