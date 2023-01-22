@@ -1,32 +1,32 @@
 library bitboard;
 
-dep bitmaps;
-use bitmaps::*;
+dep bitmap;
+use bitmap::*;
 
 /// The BitBoard type can be thought of as a stack of layers
 /// which can be selectively combined to query the location of pieces.
 pub struct BitBoard {
-    black_pawns: u64,
-    black_bishops: u64,
-    black_rooks: u64,
-    black_knights: u64,
-    black_queen: u64,
-    black_king: u64,
-    white_pawns: u64,
-    white_bishops: u64,
-    white_rooks: u64,
-    white_knights: u64,
-    white_queen: u64,
-    white_king: u64,
-    pawns: u64,
-    knights: u64,
-    bishops: u64,
-    rooks: u64,
-    queens: u64,
-    kings: u64,
-    black: u64,
-    white: u64,
-    all: u64,
+    black_pawns: BitMap,
+    black_bishops: BitMap,
+    black_rooks: BitMap,
+    black_knights: BitMap,
+    black_queen: BitMap,
+    black_king: BitMap,
+    white_pawns: BitMap,
+    white_bishops: BitMap,
+    white_rooks: BitMap,
+    white_knights: BitMap,
+    white_queen: BitMap,
+    white_king: BitMap,
+    pawns: BitMap,
+    knights: BitMap,
+    bishops: BitMap,
+    rooks: BitMap,
+    queens: BitMap,
+    kings: BitMap,
+    black: BitMap,
+    white: BitMap,
+    all: BitMap,
 }
 
 impl BitBoard {

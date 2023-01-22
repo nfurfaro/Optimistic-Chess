@@ -1,6 +1,7 @@
 library board;
 
 dep bitboard;
+dep bitmap;
 dep color;
 dep errors;
 dep move;
@@ -10,6 +11,7 @@ dep square;
 dep utils;
 
 use bitboard::BitBoard;
+use bitmap::*;
 use color::{BLACK, Color, WHITE};
 use errors::*;
 use move::Move;
@@ -208,34 +210,34 @@ impl Board {
     // TODO: do I ever need to perform all these steps, or can I always just use the latest Move to update 2 nibbles in the piecemap?
     pub fn generate_piecemap(mut self) {
         let mut i = 0;
-        let mut mask = 0;
+        let mut mask = BLANK;
         let mut color = 0;
         let mut piece = EMPTY;
         // TODO: see if I can use match to clean this up. Add unit tests first so I know it actually works.
         while i < 64 {
-            mask = 1 << i;
+            mask = BitMap::from_u64(1 << i);
             let occupied = mask & self.bitboard.all;
-            if occupied == 0 {
+            if occupied == BLANK {
                 i += 1;
             } else {
-                let pawn = mask & self.bitboard.pawns;
-                if pawn == 1 {
+                let pawn_test = mask & self.bitboard.pawns;
+                if pawn_test != BLANK {
                     piece = PAWN;
                 } else {
-                    let bishop = mask & self.bitboard.bishops;
-                    if bishop == 1 {
+                    let bishop_test = mask & self.bitboard.bishops;
+                    if bishop_test != BLANK {
                         piece = BISHOP;
                     } else {
-                        let rook = mask & self.bitboard.rooks;
-                        if rook == 1 {
+                        let rook_test = mask & self.bitboard.rooks;
+                        if rook_test != BLANK {
                             piece = ROOK;
                         } else {
-                            let knight = mask & self.bitboard.knights;
-                            if knight == 1 {
+                            let knight_test = mask & self.bitboard.knights;
+                            if knight_test != BLANK {
                                 piece = KNIGHT;
                             } else {
-                                let queen = mask & self.bitboard.queens;
-                                if queen == 1 {
+                                let queen_test = mask & self.bitboard.queens;
+                                if queen_test != BLANK {
                                     piece = QUEEN;
                                 } else {
                                     piece = KING;
@@ -246,7 +248,7 @@ impl Board {
                 }
             };
 
-            let color = if mask & self.bitboard.black == 0 {
+            let color = if mask & self.bitboard.black != BLANK {
                 BLACK
             } else {
                 WHITE
@@ -305,21 +307,21 @@ impl Board {
             let (color, piece) = board.read_square(s);
             if color == BLACK {
                 match piece {
-                    Piece::Pawn => self.bitboard.black_pawns = turn_on_bit(bitboard.black_pawns, i),
-                    Piece::Bishop => self.bitboard.black_bishops = turn_on_bit(bitboard.black_bishops, i),
-                    Piece::Rook => self.bitboard.black_rooks = turn_on_bit(bitboard.black_rooks, i),
-                    Piece::Knight => self.bitboard.black_knights = turn_on_bit(bitboard.black_knights, i),
-                    Piece::Queen => self.bitboard.black_queen = turn_on_bit(bitboard.black_queen, i),
-                    Piece::King => self.bitboard.black_king = turn_on_bit(bitboard.black_king, i),
+                    Piece::Pawn => self.bitboard.black_pawns = BitMap::from_u64(turn_on_bit(bitboard.black_pawns.bits, i)),
+                    Piece::Bishop => self.bitboard.black_bishops = BitMap::from_u64(turn_on_bit(bitboard.black_bishops.bits, i)),
+                    Piece::Rook => self.bitboard.black_rooks = BitMap::from_u64(turn_on_bit(bitboard.black_rooks.bits, i)),
+                    Piece::Knight => self.bitboard.black_knights = BitMap::from_u64(turn_on_bit(bitboard.black_knights.bits, i)),
+                    Piece::Queen => self.bitboard.black_queen = BitMap::from_u64(turn_on_bit(bitboard.black_queen.bits, i)),
+                    Piece::King => self.bitboard.black_king = BitMap::from_u64(turn_on_bit(bitboard.black_king.bits, i)),
                 }
             } else {
                 match piece {
-                    Piece::Pawn => self.bitboard.white_pawns = turn_on_bit(bitboard.white_pawns, i),
-                    Piece::Bishop => self.bitboard.white_bishops = turn_on_bit(bitboard.white_bishops, i),
-                    Piece::Rook => self.bitboard.white_rooks = turn_on_bit(bitboard.white_rooks, i),
-                    Piece::Knight => self.bitboard.white_knights = turn_on_bit(bitboard.white_knights, i),
-                    Piece::Queen => self.bitboard.white_queen = turn_on_bit(bitboard.white_queen, i),
-                    Piece::King => self.bitboard.white_king = turn_on_bit(bitboard.white_king, i),
+                    Piece::Pawn => self.bitboard.white_pawns = BitMap::from_u64(turn_on_bit(bitboard.white_pawns.bits, i)),
+                    Piece::Bishop => self.bitboard.white_bishops = BitMap::from_u64(turn_on_bit(bitboard.white_bishops.bits, i)),
+                    Piece::Rook => self.bitboard.white_rooks = BitMap::from_u64(turn_on_bit(bitboard.white_rooks.bits, i)),
+                    Piece::Knight => self.bitboard.white_knights = BitMap::from_u64(turn_on_bit(bitboard.white_knights.bits, i)),
+                    Piece::Queen => self.bitboard.white_queen = BitMap::from_u64(turn_on_bit(bitboard.white_queen.bits, i)),
+                    Piece::King => self.bitboard.white_king = BitMap::from_u64(turn_on_bit(bitboard.white_king.bits, i)),
                 }
             };
             s += 4;

@@ -2,7 +2,7 @@ library validator;
 
 dep bitboard;
 dep color;
-dep bitmaps;
+dep bitmap;
 dep board;
 dep errors;
 dep game;
@@ -13,7 +13,7 @@ dep utils;
 
 use bitboard::BitBoard;
 use color::{BLACK, Color, WHITE};
-use bitmaps::*;
+use bitmap::*;
 use board::Board;
 use errors::ChessError;
 use game::{Game, Status};
@@ -189,35 +189,35 @@ fn is_legal_move(board: Board, move: Move) -> bool {
     true
 }
 
-fn is_on_edge(bitmap: u64) -> bool {
-    (bitmap & EDGES) != 0
+fn is_on_edge(bitmap: BitMap) -> bool {
+    (bitmap & EDGES) != BLANK
 }
 
-fn is_on_corner(bitmap: u64) -> bool {
-    (bitmap & CORNERS) != 0
+fn is_on_corner(bitmap: BitMap) -> bool {
+    (bitmap & CORNERS) != BLANK
 }
 
-fn is_on_rank_1(bitmap: u64) -> bool {
-    (bitmap & RANK_1) != 0
+fn is_on_rank_1(bitmap: BitMap) -> bool {
+    (bitmap & RANK_1) != BLANK
 }
 
-fn is_on_rank_8(bitmap: u64) -> bool {
-    (bitmap & RANK_8) != 0
+fn is_on_rank_8(bitmap: BitMap) -> bool {
+    (bitmap & RANK_8) != BLANK
 }
 
-fn is_on_file_a(bitmap: u64) -> bool {
-    (bitmap & FILE_A) != 0
+fn is_on_file_a(bitmap: BitMap) -> bool {
+    (bitmap & FILE_A) != BLANK
 }
 
-fn is_on_file_h(bitmap: u64) -> bool {
-    (bitmap & FILE_H) != 0
+fn is_on_file_h(bitmap: BitMap) -> bool {
+    (bitmap & FILE_H) != BLANK
 }
 
-fn threat_map(bits: BitBoard, color: Color) -> u64 {
+fn threat_map(bits: BitBoard, color: Color) -> BitMap {
      pawn_attacks(bits, color) | bishop_attacks(bits, color) | rook_attacks(bits, color) | knight_attacks(bits, color) | queen_attacks(bits, color) | king_attacks(bits, color)
 }
 
-fn pawn_attacks(bits: BitBoard, color: Color) -> u64 {
+fn pawn_attacks(bits: BitBoard, color: Color) -> BitMap {
     match color {
         Color::Black => ((bits.black_pawns >> 7) & !FILE_H) | ((bits.black_pawns >> 9) & !FILE_A),
         Color::White => ((bits.white_pawns << 7) & !FILE_H) | ((bits.white_pawns << 9) & !FILE_A),
@@ -225,27 +225,27 @@ fn pawn_attacks(bits: BitBoard, color: Color) -> u64 {
     }
 }
 
-fn bishop_attacks(bits: BitBoard, color: Color) -> u64 {
+fn bishop_attacks(bits: BitBoard, color: Color) -> BitMap {
     // TODO: Implement me !
-    0
+    BLANK
 }
 
-fn rook_attacks(bits: BitBoard, color: Color) -> u64 {
+fn rook_attacks(bits: BitBoard, color: Color) -> BitMap {
     // TODO: Implement me !
-    0
+    BLANK
 }
 
-fn knight_attacks(bits: BitBoard, color: Color) -> u64 {
+fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
     // TODO: Implement me !
-    0
+    BLANK
 }
 
-fn queen_attacks(bits: BitBoard, color: Color) -> u64 {
+fn queen_attacks(bits: BitBoard, color: Color) -> BitMap {
     // TODO: Implement me !
-    0
+    BLANK
 }
 
-fn king_attacks(bits: BitBoard, color: Color) -> u64 {
+fn king_attacks(bits: BitBoard, color: Color) -> BitMap {
     let king_bit = match color {
         Color::Black => bits.kings & bits.black,
         Color::White => bits.kings & bits.white,
@@ -316,19 +316,19 @@ fn pawn_validation(board: Board, move: Move) {
         let color = board.side_to_move();
         if let Color::Black = color {
              match p {
-                Piece::Queen => assert(board.bitboard.queens & board.bitboard.black == 0),
-                Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.black).unwrap() < 2),
-                Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.black).unwrap() < 2),
-                Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.black).unwrap() < 2),
+                Piece::Queen => assert(board.bitboard.queens & board.bitboard.black == BLANK),
+                Piece::Rook => assert((board.bitboard.rooks & board.bitboard.black).enumerate_bits().unwrap() < 2),
+                Piece::Bishop => assert((board.bitboard.bishops & board.bitboard.black).enumerate_bits().unwrap() < 2),
+                Piece::Knight => assert((board.bitboard.knights & board.bitboard.black).enumerate_bits().unwrap() < 2),
                 _ => (),
             }
         } else {
             // color is white
             match p {
-                Piece::Queen => assert(board.bitboard.queens & board.bitboard.white == 0),
-                Piece::Rook => assert(u64::enumerate_bits(board.bitboard.rooks & board.bitboard.white).unwrap() < 2),
-                Piece::Bishop => assert(u64::enumerate_bits(board.bitboard.bishops & board.bitboard.white).unwrap() < 2),
-                Piece::Knight => assert(u64::enumerate_bits(board.bitboard.knights & board.bitboard.white).unwrap() < 2),
+                Piece::Queen => assert(board.bitboard.queens & board.bitboard.white == BLANK),
+                Piece::Rook => assert((board.bitboard.rooks & board.bitboard.white).enumerate_bits().unwrap() < 2),
+                Piece::Bishop => assert((board.bitboard.bishops & board.bitboard.white).enumerate_bits().unwrap() < 2),
+                Piece::Knight => assert((board.bitboard.knights & board.bitboard.white).enumerate_bits().unwrap() < 2),
                 _ => (),
             }
         }

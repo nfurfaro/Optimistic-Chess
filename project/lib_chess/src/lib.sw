@@ -2,7 +2,7 @@ library lib_chess;
 
 dep errors;
 dep color;
-dep bitmaps;
+dep bitmap;
 dep bitboard;
 dep board;
 dep piece;
