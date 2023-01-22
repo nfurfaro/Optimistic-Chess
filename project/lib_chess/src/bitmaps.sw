@@ -1,6 +1,67 @@
 library bitmaps;
 
 // TODO: Add a Bitmap struct (use a tuple struct when available)
+pub struct Bitmap {
+    bits: u64
+}
+
+impl Bitmap {
+    fn from_u64(num: u64) -> Bitmap {
+        Bitmap {
+            bits: num
+        }
+    }
+}
+
+impl core::ops::Eq for Bitmap {
+    fn eq(self, other: Self) -> bool {
+        self.bits == other.bits
+    }
+}
+
+impl core::ops::BitwiseAnd for Bitmap {
+    fn binary_and(self, other: Self) -> Self {
+        Bitmap {
+            bits: asm(r1: self.bits, r2: other.bits, r3) {
+                and r3 r1 r2;
+                r3: u64
+            }
+        }
+    }
+}
+
+impl core::ops::BitwiseOr for Bitmap {
+    fn binary_or(self, other: Self) -> Self {
+        Bitmap {
+            bits: asm(r1: self.bits, r2: other.bits, r3) {
+                or r3 r1 r2;
+                r3: u64
+            }
+        }
+    }
+}
+
+impl core::ops::BitwiseXor for Bitmap {
+    fn binary_xor(self, other: Self) -> Self {
+        Bitmap {
+            bits: asm(r1: self.bits, r2: other.bits, r3) {
+                xor r3 r1 r2;
+                r3: u64
+            }
+        }
+    }
+}
+
+impl core::ops::Not for Bitmap {
+    fn not(self) -> Self {
+        Bitmap {
+            bits: asm(r1: self.bits, r2) {
+                not r2 r1;
+                r2: u64
+            }
+        }
+    }
+}
 
 
 // Primary bitmaps
