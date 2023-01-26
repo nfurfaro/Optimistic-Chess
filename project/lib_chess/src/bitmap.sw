@@ -1,18 +1,19 @@
 library bitmap;
 
+dep utils;
+use utils::toggle_bit;
+
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {
-    bits: u64
+    bits: u64,
 }
 
 impl BitMap {
     pub fn from_u64(num: u64) -> BitMap {
-        BitMap {
-            bits: num
-        }
+        BitMap { bits: num }
     }
 
-    // returns the number of set bits in a bitmap.
+    /// returns the number of set bits in a bitmap.
     pub fn enumerate_bits(self) -> Option<u64> {
         let mut n = 0;
         let mut b = self.bits;
@@ -26,6 +27,19 @@ impl BitMap {
         }
     }
 }
+    /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
+//     pub fn fragment(self) -> Vec<BitMap> {
+//         let n = self.enumerate_bits();
+//         let mut bitmaps: Vec<BitMap> = Vec::with_capacity(n);
+//         let mut i = 0;
+//         while i < n {
+//             let mut bits = bitmaps[i];
+//             toggle_bit(bits);
+//             i += 1;
+//         }
+//         bitmaps.push(BitMap::new())
+//     }
+// }
 
 impl core::ops::Eq for BitMap {
     fn eq(self, other: Self) -> bool {
@@ -39,7 +53,7 @@ impl core::ops::BitwiseAnd for BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
                 and r3 r1 r2;
                 r3: u64
-            }
+            },
         }
     }
 }
@@ -50,7 +64,7 @@ impl core::ops::BitwiseOr for BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
                 or r3 r1 r2;
                 r3: u64
-            }
+            },
         }
     }
 }
@@ -61,7 +75,7 @@ impl core::ops::BitwiseXor for BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
                 xor r3 r1 r2;
                 r3: u64
-            }
+            },
         }
     }
 }
@@ -72,11 +86,10 @@ impl core::ops::Not for BitMap {
             bits: asm(r1: self.bits, r2) {
                 not r2 r1;
                 r2: u64
-            }
+            },
         }
     }
 }
-
 
 impl core::ops::Shiftable for BitMap {
     fn lsh(self, other: u64) -> Self {
@@ -84,7 +97,7 @@ impl core::ops::Shiftable for BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
                 sll r3 r1 r2;
                 r3: u64
-            }
+            },
         }
     }
 
@@ -93,11 +106,10 @@ impl core::ops::Shiftable for BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
                 srl r3 r1 r2;
                 r3: u64
-            }
+            },
         }
     }
 }
-
 
 // Primary bitmaps
 pub const BLACK_PAWNS: BitMap = BitMap::from_u64(0x00FF000000000000);
@@ -112,7 +124,6 @@ pub const WHITE_KNIGHTS: BitMap = BitMap::from_u64(0x0000000000000042);
 pub const WHITE_BISHOPS: BitMap = BitMap::from_u64(0x0000000000000024);
 pub const WHITE_QUEEN: BitMap = BitMap::from_u64(0x0000000000000008);
 pub const WHITE_KING: BitMap = BitMap::from_u64(0x0000000000000010);
-
 
 // Utility bitmaps
 pub const RANK_1: BitMap = BitMap::from_u64(0x00000000000000FF);

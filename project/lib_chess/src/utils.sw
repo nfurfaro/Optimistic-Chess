@@ -68,7 +68,6 @@ pub fn b256_multimask(n: u64) -> b256 {
 }
 
 // pub fn b256_set_bit()
-
 /// Get a bitmask with a single `1` at the nth position.
 pub fn single_bit_mask(n: u64) -> u64 {
     // TODO: fix bug ! when n == 0
