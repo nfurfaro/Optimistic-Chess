@@ -193,6 +193,7 @@ impl Board {
         self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
     }
 
+    // TODO: decide on error handling strategy for this to replace the use of unwrap() everywhere.
     pub fn read_square(self, square_index: u64) -> Option<(Color, Piece)> {
         let mut index = square_index;
         let mut mask = compose((0, 0, 0, multi_bit_mask(4)));

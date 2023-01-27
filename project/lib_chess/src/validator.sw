@@ -8,6 +8,7 @@ dep errors;
 dep game;
 dep move;
 dep piece;
+dep special;
 dep square;
 dep utils;
 
@@ -19,6 +20,7 @@ use errors::ChessError;
 use game::{Game, Status};
 use move::Move;
 use piece::{EMPTY, Piece};
+use special::CastleRights;
 use square::Square;
 use utils::turn_on_bit;
 
@@ -385,12 +387,6 @@ fn queen_validation(board: Board, move: Move) {}
     // TODO: Implement me !
 fn king_validation(board: Board, move: Move) {}
 
-
-    // TODO: Implement me !
-    // if move.is_castling() {
-        // check legality
-        // check metadata for castling rights
-    // };
 pub fn validate(game: Game, move: Move) -> bool {
     let side_to_move = game.board.side_to_move();
     let (color_moved, piece) = game.board.read_square(move.source.to_index()).unwrap();
@@ -434,15 +430,41 @@ pub fn verify_move(game: Game, move: Move) {
         _ => (),
     };
 
-    let turn = game.board.side_to_move();
+    let turn_to_move = game.board.side_to_move();
 
     // check if king is in check early as possible, and reset as needed each move.
-    assert(!game.board.king_in_check(turn));
+    assert(!game.board.king_in_check(turn_to_move));
 
     // is there a piece on src?
+    match game.board.read_square(move.source.to_index()) {
+        Option::None => revert(0),
+        Option::Some((color, piece)) => {
+            // does it belong to current side to move?
+            if color != turn_to_move {
+               revert(0);
+            };
+        },
+    }
 
-    // does it belong to current side to move?
-    // if piece on dest, is it opposite colour?
+    // if piece on dest, is it the opposite color?
+    match game.board.read_square(move.source.to_index()) {
+        Option::None => (),
+        Option::Some((color, piece)) => {
+              assert(color != turn_to_move);
+        },
+    }
+
+    // check metadata for castling rights
+    if move.is_castling() {
+        // check legality
+        let result = game.board.castling_rights();
+        if result.is_ok() {
+            match result.unwrap()[turn_to_move.to_u64()] {
+                CastleRights::NoRights => revert(0),
+                _ => (), // TODO: decide how to check move aligns with rights
+            };
+        };
+    };
 }
 
 pub fn validate_move() {
