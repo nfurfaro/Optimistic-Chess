@@ -81,6 +81,10 @@ impl Board {
 }
 
 impl Board {
+    pub fn king_in_check(self, color: Color) -> bool {
+        true
+    }
+
     pub fn clear_castling_rights(mut self) {
         self.metadata = self.metadata & CASTLING_CLEARING_MASK;
     }
@@ -189,7 +193,7 @@ impl Board {
         self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
     }
 
-    pub fn read_square(self, square_index: u64) -> (Color, Piece) {
+    pub fn read_square(self, square_index: u64) -> Option<(Color, Piece)> {
         let mut index = square_index;
         let mut mask = compose((0, 0, 0, multi_bit_mask(4)));
         let piece_code = if index == 0 {
@@ -199,9 +203,14 @@ impl Board {
             let mask = compose((0, 0, 0, multi_bit_mask(index) << index));
             decompose((self.piecemap & mask) >> index).3
         };
-        let color = Color::try_from_u64(piece_code >> 4).unwrap();
-        let piece = Piece::try_from_u64(piece_code).unwrap();
-        (color, piece)
+        match piece_code {
+            0 => Option::None,
+            _ => {
+                let color = Color::try_from_u64(piece_code >> 4).unwrap();
+                let piece = Piece::try_from_u64(piece_code).unwrap();
+                Option::Some((color, piece))
+            },
+        }
     }
 }
 
@@ -260,14 +269,18 @@ impl Board {
     }
 
     // wraps Square::clear() & Square::set() ??                  REVIEW !
-    pub fn move_piece(mut self, src: Square, dest: Square) {
-        let (color, piece) = self.read_square(src.to_index());
-        // clear src
-        self.clear_square(src);
-        // TODO: clear dest if !color, and must be legal move
-        self.clear_square(dest);
-        // set src
-        self.write_square_to_piecemap(color, piece, dest);
+    pub fn move_piece(mut self, src: Square, dest: Square)  {
+        match self.read_square(src.to_index()) {
+            Option::None => revert(0),
+            Option::Some((color, piece)) => {
+                // clear src
+                self.clear_square(src);
+                // TODO: clear dest if !color, and must be legal move
+                self.clear_square(dest);
+                // set src
+                self.write_square_to_piecemap(color, piece, dest)
+            },
+        }
     }
 
     pub fn side_to_move(self) -> Color {
@@ -304,7 +317,7 @@ impl Board {
         let mut s = 0;
         let mut i = 0;
         while i < 64 {
-            let (color, piece) = board.read_square(s);
+            let (color, piece) = board.read_square(s).unwrap();
             if color == BLACK {
                 match piece {
                     Piece::Pawn => self.bitboard.black_pawns = BitMap::from_u64(turn_on_bit(bitboard.black_pawns.bits, i)),

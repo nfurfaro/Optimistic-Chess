@@ -17,7 +17,7 @@ abi Chess {
     // fn post_bond(game_id: b256);
 
     // #[storage(read)]
-    // fn move(move: Move);
+    // fn move(game_id: b256, state: move: Move);
 
     // #[storage(read, write)]
     // fn move_from_state(move: Move, nonce: u64, sig: B512);

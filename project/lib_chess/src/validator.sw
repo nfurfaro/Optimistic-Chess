@@ -155,7 +155,6 @@ fn min(a: u64, b: u64) -> u64 {
     if b < a { b } else if a < b { a } else { a }
 }
 
-// fn square_mask() -> u64 {}
 fn file_delta(src: Square, dest: Square) -> u64 {
     max(src.file(), dest.file()) - min(src.file(), dest.file())
 }
@@ -165,7 +164,7 @@ fn rank_delta(src: Square, dest: Square) -> u64 {
 }
 
 fn is_legal_move(board: Board, move: Move) -> bool {
-    let (color, piece) = board.read_square(move.source.to_index());
+    let (color, piece) = board.read_square(move.source.to_index()).unwrap();
     match piece {
         Piece::Pawn => pawn_validation(board, move),
         Piece::Bishop => bishop_validation(board, move),
@@ -386,38 +385,15 @@ fn queen_validation(board: Board, move: Move) {}
     // TODO: Implement me !
 fn king_validation(board: Board, move: Move) {}
 
+
     // TODO: Implement me !
     // if move.is_castling() {
         // check legality
         // check metadata for castling rights
     // };
-// validation checks common to all pieces and colors
-fn universal_validation_checks() {}
-
-    // TODO: Implement me !
-    // perform the cheapest checks first!
-    // check game.statehash to know if we need to generate bitboards or not
-    // check game status ! don't bother validating moves if game is over
-    // check metadata
-    // src & dest must be valid squares
-    // if source and dest are of type Square, they can only be valid squares!
-    // assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
-    // is move a castle? check rights & legality
-    // is there a piece on src?
-    // does it belong to current side to move?
-    // if piece on dest, is it opposite colour?
-    //   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
-    //   - blocking pieces on squares between?
-    // check full-move counter. At 50, the game automatically ends in a draw, unless the 50th move is a checkmate
-// first, perform minimal verification that a move is at least well formed.
-// this can be done ncrementally while building a Move struct from the abi method params.
-// need to check if king is in check early as possible, and reset as needed each move.
-// complete initial verifiaction, then pass off for validation.
-// then apply state transitions
-// then commit the move to storage and log data.
 pub fn validate(game: Game, move: Move) -> bool {
     let side_to_move = game.board.side_to_move();
-    let (color_moved, piece) = game.board.read_square(move.source.to_index());
+    let (color_moved, piece) = game.board.read_square(move.source.to_index()).unwrap();
     assert(color_moved == side_to_move);
 
     match game.status {
@@ -427,3 +403,52 @@ pub fn validate(game: Game, move: Move) -> bool {
 
     true
 }
+
+// validation
+    // check metadata
+    // src & dest must be valid squares
+    // if source and dest are of type Square, they can only be valid squares!
+    // assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
+    // is move a castle? check rights & legality
+
+    //   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
+    //   - blocking pieces on squares between?
+
+// here we do the easy checks common to all pieces and colors
+pub fn verify_move(game: Game, move: Move) {
+    // TODO: Implement me !
+    // perform the cheapest checks first!
+    // perform minimal verification that a move is at least well formed.
+    // this can be done incrementally while building a Move struct from the abi method params.
+
+    // don't bother validating moves if game is over
+    match game.status {
+        Status::Active => (),
+        _ => (),// TODO
+    };
+
+    // check full-move counter.
+    // At 50, the game automatically ends in a draw, unless the 50th move is a checkmate
+    match game.board.full_move_counter() {
+        49 => (), // this is the last move !
+        _ => (),
+    };
+
+    let turn = game.board.side_to_move();
+
+    // check if king is in check early as possible, and reset as needed each move.
+    assert(!game.board.king_in_check(turn));
+
+    // is there a piece on src?
+
+    // does it belong to current side to move?
+    // if piece on dest, is it opposite colour?
+}
+
+pub fn validate_move() {
+    // check game.statehash to know if we need to generate bitboards or not
+}
+
+pub fn apply_move() {}
+
+pub fn commit_move() {}
