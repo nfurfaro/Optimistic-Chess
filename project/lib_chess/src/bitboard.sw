@@ -70,12 +70,12 @@ impl BitBoard {
 fn test_new_bitstack() {
     let board = BitBoard::new();
     assert(board.all == ALL_PIECES);
-    // assert(board.pawns == BLACK_PAWNS | WHITE_PAWNS);
-    // assert(board.knights == BLACK_KNIGHTS | WHITE_KNIGHTS);
-    // assert(board.bishops == BLACK_BISHOPS | WHITE_BISHOPS);
-    // assert(board.rooks == BLACK_ROOKS | WHITE_ROOKS);
-    // assert(board.queens == BLACK_QUEEN | WHITE_QUEEN);
-    // assert(board.kings == BLACK_KING | WHITE_KING);
-    // assert(board.black == BLACK_PIECES);
-    // assert(board.white == WHITE_PIECES);
+    assert(board.pawns == BLACK_PAWNS | WHITE_PAWNS);
+    assert(board.knights == BLACK_KNIGHTS | WHITE_KNIGHTS);
+    assert(board.bishops == BLACK_BISHOPS | WHITE_BISHOPS);
+    assert(board.rooks == BLACK_ROOKS | WHITE_ROOKS);
+    assert(board.queens == BLACK_QUEEN | WHITE_QUEEN);
+    assert(board.kings == BLACK_KING | WHITE_KING);
+    assert(board.black == BLACK_PIECES);
+    assert(board.white == WHITE_PIECES);
 }

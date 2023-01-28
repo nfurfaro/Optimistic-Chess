@@ -5,6 +5,7 @@ dep piece;
 
 use utils::{toggle_bit, query_bit};
 use piece::EMPTY;
+use std::logging::log;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {
@@ -81,7 +82,7 @@ impl core::ops::Not for BitMap {
     }
 }
 
-impl core::ops::Shiftable for BitMap {
+impl core::ops::Shift for BitMap {
     fn lsh(self, other: u64) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
@@ -193,4 +194,15 @@ fn test_enumerate_bits() {
     assert(n3.unwrap() == 1);
     assert(n4.unwrap() == 5);
     assert(n5.unwrap() == 27);
+}
+
+#[test()]
+fn test_scatter() {
+    let bits = BitMap::from_u64(0b11111111);
+    let scattered = bits.scatter();
+    let mut i = 0;
+    while i < scattered.len() {
+        log(scattered.get(i).unwrap().bits);
+        assert(scattered.get(i).unwrap().bits == 1 << i);
+    };
 }

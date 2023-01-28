@@ -47,6 +47,17 @@ impl Move {
 
     pub fn is_castling(self) -> bool {
         // TODO: Implement me !
+        // if piece being moved is a king
+        // if Black king moves to either g8 (KS) or c8 (QS)
+        // if White king moves to either g1 (KS) or c1 (QS)
+        // if black
+          // if src == e8
+            // if rights
+            //   match self.dest {
+            //     Square::g8 => , // (king side)
+            //     Square::c8 => , // (queen side)
+            //   }
+
         false
     }
     pub fn is_en_passant(self) -> bool {

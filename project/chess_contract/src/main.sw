@@ -26,7 +26,7 @@ impl Chess for Contract {
     #[payable]
     fn start_new_game(player1: Identity, player2: Identity, bond: Option<u64>) -> b256 {
         // increment the previous game salt
-        let salt = storage.salts.get((player1, player2)) + 1;
+        let salt = storage.salts.get((player1, player2)).unwrap() + 1;
         storage.salts.insert((player1, player2), salt);
 
         let status = match bond {

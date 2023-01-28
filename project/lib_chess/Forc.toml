@@ -5,3 +5,4 @@ license = "Apache-2.0"
 name = "lib_chess"
 
 [dependencies]
+std = { path = "../../../../fuel/sway/sway-lib-std" }
