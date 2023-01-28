@@ -1,7 +1,10 @@
 library bitmap;
 
 dep utils;
-use utils::toggle_bit;
+dep piece;
+
+use utils::{toggle_bit, query_bit};
+use piece::EMPTY;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {
@@ -27,19 +30,6 @@ impl BitMap {
         }
     }
 }
-    /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
-//     pub fn fragment(self) -> Vec<BitMap> {
-//         let n = self.enumerate_bits();
-//         let mut bitmaps: Vec<BitMap> = Vec::with_capacity(n);
-//         let mut i = 0;
-//         while i < n {
-//             let mut bits = bitmaps[i];
-//             toggle_bit(bits);
-//             i += 1;
-//         }
-//         bitmaps.push(BitMap::new())
-//     }
-// }
 
 impl core::ops::Eq for BitMap {
     fn eq(self, other: Self) -> bool {
@@ -108,6 +98,31 @@ impl core::ops::Shiftable for BitMap {
                 r3: u64
             },
         }
+    }
+}
+
+impl BitMap {
+    /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
+    pub fn fragment(self) -> Vec<BitMap> {
+        let maybe_n = self.enumerate_bits();
+        if maybe_n.is_none() {
+            let mut vec = Vec::with_capacity(1);
+            vec.push(self);
+            return vec;
+        };
+        let n = maybe_n.unwrap();
+
+        let mut bitmaps: Vec<BitMap> = Vec::with_capacity(n);
+        let mut i = 0;
+        while i < n {
+            let mut map = BitMap::from_u64(EMPTY);
+            let bit = query_bit(self.bits, i);
+            if bit == 1 {
+                bitmaps.push(BitMap::from_u64(toggle_bit(map.bits, i)));
+            };
+            i += 1;
+        }
+        bitmaps
     }
 }
 
