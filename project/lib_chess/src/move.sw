@@ -53,6 +53,18 @@ impl Move {
         // TODO: Implement me !
         false
     }
+
+    // was a pawn moved this move?
+    pub fn pawn_was_moved(self) -> bool {
+        // TODO: Implement me !
+        false
+    }
+
+    // was a piece captured this move?
+    pub fn piece_was_captured(self) -> bool {
+        // TODO: Implement me !
+        false
+    }
 }
 
 // #[test()]

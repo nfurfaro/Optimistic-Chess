@@ -185,7 +185,7 @@ impl Board {
         self.metadata = self.metadata | (value << 24);
     }
 
-    pub fn reset_half_move(mut self) {
+    pub fn reset_half_move_counter(mut self) {
         self.metadata = self.metadata & HALF_MOVE_CLEARING_MASK;
     }
 
@@ -294,7 +294,7 @@ impl Board {
 
     pub fn increment_half_move_counter(mut self) {
         let value = self.half_move_counter();
-        self.reset_half_move();
+        self.reset_half_move_counter();
         self.metadata = self.metadata | ((value + 1) << 8);
     }
 
@@ -343,12 +343,8 @@ impl Board {
         }
     }
 
-    // TODO: consider making this a method on Board
-    // this method assumes that the Board and the Move have already been validated !
-    // TODO: move all validation to validate_proposed_move()
-    // TODO: rename to apply_transition()
-    // transition should just apply the move and update data structures accordingly.
-    pub fn transition(mut self, move: Move) {
+    // make updates to data structure, but stop before writing to storage or logging events.
+    pub fn apply_move(mut self, move: Move) {
         // update metadata:
         self.toggle_side_to_move();
         let turn = self.increment_half_move_counter();
@@ -357,9 +353,10 @@ impl Board {
             self.increment_full_move_counter();
         };
 
-        // if pawn_moved || piece_captured {
-        //     self.reset_half_move_counter();
-        // }
+        if move.pawn_was_moved() || move.piece_was_captured() {
+            self.reset_half_move_counter();
+        };
+
         // update en_passant if needed
         if move.dest.to_index() == self.en_passant_target().to_index()
         {
@@ -372,30 +369,22 @@ impl Board {
             self.set_en_passant(maybe_square.unwrap())
         }
         */
-        /**
+
         // update castling_rights if needed
         if move.is_castling() {
             let mut rights = self.castling_rights();
-            let whose_turn = self.side_to_move();
-            match whose_turn {
-                color::Black => {
-                    self.set_castling_rights((CastleRights::NoRights, rights[1].unwrap()));
+            let turn_to_move = self.side_to_move();
+            match turn_to_move {
+                Color::Black => {
+                    self.set_castling_rights((CastleRights::NoRights, rights.unwrap()[0]));
                 },
                 Color::White => {
-                    self.set_castling_rights((rights[0].unwrap(), CastleRights::NoRights));
+                    self.set_castling_rights((rights.unwrap()[1], CastleRights::NoRights));
                 },
             };
         }
-        */
-        // these are likely needed in validate_move()
-        // let mut bitboard = self.generate_bitboard();
-        // self.write_piecemap(bitboard);
-        /**
-        // read the piece on src square
-        let piece = self.square(move.source);
-        // set the piece on dest and clear src
-        self.move_piece(move.src, move.dest, color, piece);
-        */
+
+        self.move_piece(move.source, move.dest  );
     }
 }
 

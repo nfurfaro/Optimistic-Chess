@@ -84,3 +84,10 @@ impl Chess for Contract {
 // fn hash_state(piecemap: b256, metadata: u64,) -> b256 {
 //     keccak256((piecemap, metadata))
 // }
+
+
+// should be implemented in the contract as a private function used by both move & move_from_state
+fn commit_move() {
+    // write to storage
+    // emit event
+}

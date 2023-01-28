@@ -471,6 +471,4 @@ pub fn validate_move() {
     // check game.statehash to know if we need to generate bitboards or not
 }
 
-pub fn apply_move() {}
-
-pub fn commit_move() {}
+// write to storage
