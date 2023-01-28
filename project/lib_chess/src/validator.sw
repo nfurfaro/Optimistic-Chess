@@ -224,29 +224,29 @@ fn rook_attacks(bits: BitBoard, color: Color) -> BitMap {
 
 fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
     let mut attacks = BitMap::from_u64(EMPTY);
-    let knight_bits = match color {
+    let knights = match color {
         Color::Black => bits.knights & bits.black,
         Color::White => bits.knights & bits.white,
     };
     let mut num = 0;
-    match knight_bits.enumerate_bits().unwrap() {
+    match knights.enumerate_bits().unwrap() {
         0 => return BLANK,
         1 => num = 1,
         2 => num = 2,
         _ => revert(0),
     };
     if num == 1 {
-        let rank_1 = is_on_rank_1(knight_bits);
-        let file_a = is_on_file_a(knight_bits);
-        let rank_8 = is_on_rank_8(knight_bits);
-        let file_h = is_on_file_h(knight_bits);
+        let rank_1 = is_on_rank_1(knights);
+        let file_a = is_on_file_a(knights);
+        let rank_8 = is_on_rank_8(knights);
+        let file_h = is_on_file_h(knights);
 
-        // maybe use a loop, seperate knight bits into 2 bitmaps in an array?
-        let knight_bitmaps: Vec<BitMap> = Vec::with_capacity(num);
-        // knight_bitmaps.push()
+        // convert a bitmap of n knights into n bitmaps with 1 knight each
+        let knight_maps = knights.scatter();
+
         let mut i = 0;
-        while i < knight_bitmaps.len() {
-            let bits = knight_bitmaps.get(i).unwrap();
+        while i < knight_maps.len() {
+            let bits = knight_maps.get(i).unwrap();
             attacks = match (rank_1, file_a, rank_8, file_h) {
                 // a1 corner: can attack 2 squares
                 (true, true, false, false) => attacks | (bits << 17) | (bits << 10),

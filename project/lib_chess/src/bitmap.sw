@@ -103,20 +103,24 @@ impl core::ops::Shiftable for BitMap {
 
 impl BitMap {
     /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
-    pub fn fragment(self) -> Vec<BitMap> {
+    // TODO: think of better name
+    // fragmant, disperse, dilute, difuse
+    pub fn scatter(self) -> Vec<BitMap> {
         let maybe_n = self.enumerate_bits();
         if maybe_n.is_none() {
             let mut vec = Vec::with_capacity(1);
             vec.push(self);
             return vec;
         };
-        let n = maybe_n.unwrap();
 
+        let n = maybe_n.unwrap();
         let mut bitmaps: Vec<BitMap> = Vec::with_capacity(n);
+
         let mut i = 0;
         while i < n {
             let mut map = BitMap::from_u64(EMPTY);
             let bit = query_bit(self.bits, i);
+            // TODO: optimize. the call to enumerate_bits could do more for us, maybe returing the index of each set bit?
             if bit == 1 {
                 bitmaps.push(BitMap::from_u64(toggle_bit(map.bits, i)));
             };
