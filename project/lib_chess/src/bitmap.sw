@@ -179,22 +179,22 @@ pub const BLACK_PIECES: BitMap = BitMap::from_u64(0xFFFF000000000000);
 pub const ALL_PIECES: BitMap = BitMap::from_u64(0xFFFF00000000FFFF);
 pub const BLANK: BitMap = BitMap::from_u64(0x0);
 
-// #[test()]
-// fn test_enumerate_bits() {
-//     let n1 = BitMap::from_u64(u64::max()).enumerate_bits();
-//     let n2 = BitMap::from_u64(u64::min()).enumerate_bits();
-//     let n3 = BitMap::from_u64(1).enumerate_bits();
-//     let n4 = BitMap::from_u64(0b011010011).enumerate_bits();
-//     let n5 = BitMap::from_u64(0b011010011011010011011011011011010011011011011).enumerate_bits();
+#[test()]
+fn test_enumerate_bits() {
+    let n1 = BitMap::from_u64(u64::max()).enumerate_bits();
+    let n2 = BitMap::from_u64(u64::min()).enumerate_bits();
+    let n3 = BitMap::from_u64(1).enumerate_bits();
+    let n4 = BitMap::from_u64(0b011010011).enumerate_bits();
+    let n5 = BitMap::from_u64(0b011010011011010011011011011011010011011011011).enumerate_bits();
 
-//     assert(n1.is_some());
-//     assert(n2.is_none());
-//     assert(n3.is_some());
-//     assert(n1.unwrap() == 64);
-//     assert(n3.unwrap() == 1);
-//     assert(n4.unwrap() == 5);
-//     assert(n5.unwrap() == 27);
-// }
+    assert(n1.is_some());
+    assert(n2.is_none());
+    assert(n3.is_some());
+    assert(n1.unwrap() == 64);
+    assert(n3.unwrap() == 1);
+    assert(n4.unwrap() == 5);
+    assert(n5.unwrap() == 27);
+}
 
 // #[test()]
 // fn test_scatter() {
