@@ -4,13 +4,6 @@ dep errors;
 
 use errors::ChessError;
 
-
-pub const NUM_PIECE_TYPES: u8 = 6u8;
-pub const NUM_COLOURS: u8 = 2u8;
-// TODO: consider using bools true & false to represent color
-pub const BLACK: u8 = 0u8; // false
-pub const WHITE: u8 = 1u8; // true
-
 /**
 4 bits to represent piece on each square:
 First bit denotes the color: Black == 0, White == 1.
@@ -62,7 +55,7 @@ impl Piece {
         }
     }
 
-    pub fn from_u64(piece_code: u64) -> Result<Piece, ChessError> {
+    pub fn try_from_u64(piece_code: u64) -> Result<Piece, ChessError> {
         let piece_color_mask = 0b0111;
         let colorless_piece = piece_code & piece_color_mask;
         match colorless_piece {

@@ -6,3 +6,4 @@ name = "chess_abi"
 
 [dependencies]
 lib_chess = { path = "../lib_chess"}
+std = { path = "../../../../fuel/sway/sway-lib-std" }

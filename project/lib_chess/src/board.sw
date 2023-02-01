@@ -1,6 +1,8 @@
 library board;
 
 dep bitboard;
+dep bitmap;
+dep color;
 dep errors;
 dep move;
 dep piece;
@@ -9,9 +11,11 @@ dep square;
 dep utils;
 
 use bitboard::BitBoard;
+use bitmap::*;
+use color::{BLACK, Color, WHITE};
 use errors::*;
 use move::Move;
-use piece::{BISHOP, BLACK, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK, WHITE};
+use piece::{BISHOP, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK};
 use special::CastleRights;
 use square::Square;
 use utils::{b256_multimask, compose, decompose, multi_bit_mask, query_bit, toggle_bit, turn_on_bit};
@@ -39,7 +43,6 @@ pub const HALF_MOVE_MASK: u64 = 0x000000000000FF00;
 pub const FULL_MOVE_MASK: u64 = 0x000000FF00000000;
 pub const EN_PASSANT_MASK: u64 = 0x0000000000FF0000;
 pub const CASTLING_MASK: u64 = 0x00000000FF000000;
-pub const FULL_MOVE_MASK: u64 = 0x000000FF00000000;
 pub const HALF_MOVE_CLEARING_MASK: u64 = 0xFFFFFFFFFFFF00FF;
 pub const FULL_MOVE_CLEARING_MASK: u64 = 0xFFFFFF00FFFFFFFF;
 pub const CASTLING_CLEARING_MASK: u64 = 0xFFFFFFFF00FFFFFF;
@@ -77,6 +80,10 @@ impl Board {
 }
 
 impl Board {
+    pub fn king_in_check(self, color: Color) -> bool {
+        true
+    }
+
     pub fn clear_castling_rights(mut self) {
         self.metadata = self.metadata & CASTLING_CLEARING_MASK;
     }
@@ -106,11 +113,11 @@ impl Board {
 }
 
 impl Board {
-    pub fn write_square_to_piecemap(mut self, color: u64, piece: Piece, dest: Square) {
+    pub fn write_square_to_piecemap(mut self, color: Color, piece: Piece, dest: Square) {
         self.clear_square(dest);
         let mut index = dest.to_index();
         // set the "color" bit in the piece code
-        let colored_piece = piece.to_u64() | (color << 4);
+        let colored_piece = piece.to_u64() | (color.to_u64() << 4);
         let mut piece_code = compose((0, 0, 0, (colored_piece)));
         let shifted = piece_code << index;
         self.piecemap = self.piecemap | shifted;
@@ -124,6 +131,7 @@ impl Board {
         (self.metadata & FULL_MOVE_MASK) >> 32
     }
 
+    // TODO: consider moving en_passant methods to Game? It must persist for 2 half moves
     pub fn en_passant_target(self) -> Square {
         Square::from_index((self.metadata & EN_PASSANT_MASK) >> 16).unwrap()
     }
@@ -176,7 +184,7 @@ impl Board {
         self.metadata = self.metadata | (value << 24);
     }
 
-    pub fn reset_half_move(mut self) {
+    pub fn reset_half_move_counter(mut self) {
         self.metadata = self.metadata & HALF_MOVE_CLEARING_MASK;
     }
 
@@ -184,7 +192,8 @@ impl Board {
         self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
     }
 
-    pub fn read_square(self, square_index: u64) -> (u64, Piece) {
+    // TODO: decide on error handling strategy for this to replace the use of unwrap() everywhere.
+    pub fn read_square(self, square_index: u64) -> Option<(Color, Piece)> {
         let mut index = square_index;
         let mut mask = compose((0, 0, 0, multi_bit_mask(4)));
         let piece_code = if index == 0 {
@@ -194,9 +203,14 @@ impl Board {
             let mask = compose((0, 0, 0, multi_bit_mask(index) << index));
             decompose((self.piecemap & mask) >> index).3
         };
-        let color = piece_code >> 4;
-        let piece = Piece::from_u64(piece_code).unwrap();
-        (color, piece)
+        match piece_code {
+            0 => Option::None,
+            _ => {
+                let color = Color::try_from_u64(piece_code >> 4).unwrap();
+                let piece = Piece::try_from_u64(piece_code).unwrap();
+                Option::Some((color, piece))
+            },
+        }
     }
 }
 
@@ -205,34 +219,34 @@ impl Board {
     // TODO: do I ever need to perform all these steps, or can I always just use the latest Move to update 2 nibbles in the piecemap?
     pub fn generate_piecemap(mut self) {
         let mut i = 0;
-        let mut mask = 0;
+        let mut mask = BLANK;
         let mut color = 0;
         let mut piece = EMPTY;
         // TODO: see if I can use match to clean this up. Add unit tests first so I know it actually works.
         while i < 64 {
-            mask = 1 << i;
+            mask = BitMap::from_u64(1 << i);
             let occupied = mask & self.bitboard.all;
-            if occupied == 0 {
+            if occupied == BLANK {
                 i += 1;
             } else {
-                let pawn = mask & self.bitboard.pawns;
-                if pawn == 1 {
+                let pawn_test = mask & self.bitboard.pawns;
+                if pawn_test != BLANK {
                     piece = PAWN;
                 } else {
-                    let bishop = mask & self.bitboard.bishops;
-                    if bishop == 1 {
+                    let bishop_test = mask & self.bitboard.bishops;
+                    if bishop_test != BLANK {
                         piece = BISHOP;
                     } else {
-                        let rook = mask & self.bitboard.rooks;
-                        if rook == 1 {
+                        let rook_test = mask & self.bitboard.rooks;
+                        if rook_test != BLANK {
                             piece = ROOK;
                         } else {
-                            let knight = mask & self.bitboard.knights;
-                            if knight == 1 {
+                            let knight_test = mask & self.bitboard.knights;
+                            if knight_test != BLANK {
                                 piece = KNIGHT;
                             } else {
-                                let queen = mask & self.bitboard.queens;
-                                if queen == 1 {
+                                let queen_test = mask & self.bitboard.queens;
+                                if queen_test != BLANK {
                                     piece = QUEEN;
                                 } else {
                                     piece = KING;
@@ -243,30 +257,34 @@ impl Board {
                 }
             };
 
-            let color = if mask & self.bitboard.black == 0 {
+            let color = if mask & self.bitboard.black != BLANK {
                 BLACK
             } else {
                 WHITE
             };
 
-            self.write_square_to_piecemap(color, Piece::from_u64(piece).unwrap(), Square::from_index(i).unwrap());
+            self.write_square_to_piecemap(color, Piece::try_from_u64(piece).unwrap(), Square::from_index(i).unwrap());
             i += 1;
         };
     }
 
     // wraps Square::clear() & Square::set() ??                  REVIEW !
-    pub fn move_piece(mut self, src: Square, dest: Square) {
-        let (color, piece) = self.read_square(src.to_index());
-        // clear src
-        self.clear_square(src);
-        // TODO: clear dest if !color, and must be legal move
-        self.clear_square(dest);
-        // set src
-        self.write_square_to_piecemap(color, piece, dest);
+    pub fn move_piece(mut self, src: Square, dest: Square)  {
+        match self.read_square(src.to_index()) {
+            Option::None => revert(0),
+            Option::Some((color, piece)) => {
+                // clear src
+                self.clear_square(src);
+                // TODO: clear dest if !color, and must be legal move
+                self.clear_square(dest);
+                // set src
+                self.write_square_to_piecemap(color, piece, dest)
+            },
+        }
     }
 
-    pub fn side_to_move(self) -> u64 {
-        query_bit(self.metadata, 0)
+    pub fn side_to_move(self) -> Color {
+        Color::try_from_u64(query_bit(self.metadata, 0)).unwrap()
     }
 
     pub fn toggle_side_to_move(mut self) {
@@ -275,7 +293,7 @@ impl Board {
 
     pub fn increment_half_move_counter(mut self) {
         let value = self.half_move_counter();
-        self.reset_half_move();
+        self.reset_half_move_counter();
         self.metadata = self.metadata | ((value + 1) << 8);
     }
 
@@ -299,24 +317,24 @@ impl Board {
         let mut s = 0;
         let mut i = 0;
         while i < 64 {
-            let (color, piece) = board.read_square(s);
+            let (color, piece) = board.read_square(s).unwrap();
             if color == BLACK {
                 match piece {
-                    Piece::Pawn => self.bitboard.black_pawns = turn_on_bit(bitboard.black_pawns, i),
-                    Piece::Bishop => self.bitboard.black_bishops = turn_on_bit(bitboard.black_bishops, i),
-                    Piece::Rook => self.bitboard.black_rooks = turn_on_bit(bitboard.black_rooks, i),
-                    Piece::Knight => self.bitboard.black_knights = turn_on_bit(bitboard.black_knights, i),
-                    Piece::Queen => self.bitboard.black_queen = turn_on_bit(bitboard.black_queen, i),
-                    Piece::King => self.bitboard.black_king = turn_on_bit(bitboard.black_king, i),
+                    Piece::Pawn => self.bitboard.black_pawns = BitMap::from_u64(turn_on_bit(bitboard.black_pawns.bits, i)),
+                    Piece::Bishop => self.bitboard.black_bishops = BitMap::from_u64(turn_on_bit(bitboard.black_bishops.bits, i)),
+                    Piece::Rook => self.bitboard.black_rooks = BitMap::from_u64(turn_on_bit(bitboard.black_rooks.bits, i)),
+                    Piece::Knight => self.bitboard.black_knights = BitMap::from_u64(turn_on_bit(bitboard.black_knights.bits, i)),
+                    Piece::Queen => self.bitboard.black_queen = BitMap::from_u64(turn_on_bit(bitboard.black_queen.bits, i)),
+                    Piece::King => self.bitboard.black_king = BitMap::from_u64(turn_on_bit(bitboard.black_king.bits, i)),
                 }
             } else {
                 match piece {
-                    Piece::Pawn => self.bitboard.white_pawns = turn_on_bit(bitboard.white_pawns, i),
-                    Piece::Bishop => self.bitboard.white_bishops = turn_on_bit(bitboard.white_bishops, i),
-                    Piece::Rook => self.bitboard.white_rooks = turn_on_bit(bitboard.white_rooks, i),
-                    Piece::Knight => self.bitboard.white_knights = turn_on_bit(bitboard.white_knights, i),
-                    Piece::Queen => self.bitboard.white_queen = turn_on_bit(bitboard.white_queen, i),
-                    Piece::King => self.bitboard.white_king = turn_on_bit(bitboard.white_king, i),
+                    Piece::Pawn => self.bitboard.white_pawns = BitMap::from_u64(turn_on_bit(bitboard.white_pawns.bits, i)),
+                    Piece::Bishop => self.bitboard.white_bishops = BitMap::from_u64(turn_on_bit(bitboard.white_bishops.bits, i)),
+                    Piece::Rook => self.bitboard.white_rooks = BitMap::from_u64(turn_on_bit(bitboard.white_rooks.bits, i)),
+                    Piece::Knight => self.bitboard.white_knights = BitMap::from_u64(turn_on_bit(bitboard.white_knights.bits, i)),
+                    Piece::Queen => self.bitboard.white_queen = BitMap::from_u64(turn_on_bit(bitboard.white_queen.bits, i)),
+                    Piece::King => self.bitboard.white_king = BitMap::from_u64(turn_on_bit(bitboard.white_king.bits, i)),
                 }
             };
             s += 4;
@@ -324,12 +342,8 @@ impl Board {
         }
     }
 
-    // TODO: consider making this a method on Board
-    // this method assumes that the Board and the Move have already been validated !
-    // TODO: move all validation to validate_proposed_move()
-    // TODO: rename to apply_transition()
-    // transition should just apply the move and update data structures accordingly.
-    pub fn transition(mut self, move: Move) {
+    // make updates to data structure, but stop before writing to storage or logging events.
+    pub fn apply_move(mut self, move: Move) {
         // update metadata:
         self.toggle_side_to_move();
         let turn = self.increment_half_move_counter();
@@ -337,6 +351,11 @@ impl Board {
         if half_move > 0 && half_move % 2 == 0 {
             self.increment_full_move_counter();
         };
+
+        if move.pawn_was_moved() || move.piece_was_captured() {
+            self.reset_half_move_counter();
+        };
+
         // update en_passant if needed
         if move.dest.to_index() == self.en_passant_target().to_index()
         {
@@ -349,30 +368,22 @@ impl Board {
             self.set_en_passant(maybe_square.unwrap())
         }
         */
-        /**
+
         // update castling_rights if needed
         if move.is_castling() {
             let mut rights = self.castling_rights();
-            let whose_turn = self.side_to_move();
-            match whose_turn {
-                color::Black => {
-                    self.set_castling_rights((CastleRights::NoRights, rights[1].unwrap()));
+            let turn_to_move = self.side_to_move();
+            match turn_to_move {
+                Color::Black => {
+                    self.set_castling_rights((CastleRights::NoRights, rights.unwrap()[0]));
                 },
                 Color::White => {
-                    self.set_castling_rights((rights[0].unwrap(), CastleRights::NoRights));
+                    self.set_castling_rights((rights.unwrap()[1], CastleRights::NoRights));
                 },
             };
         }
-        */
-        // these are likely needed in validate_move()
-        // let mut bitboard = self.generate_bitboard();
-        // self.write_piecemap(bitboard);
-        /**
-        // read the piece on src square
-        let piece = self.square(move.source);
-        // set the piece on dest and clear src
-        self.move_piece(move.src, move.dest, color, piece);
-        */
+
+        self.move_piece(move.source, move.dest  );
     }
 }
 
