@@ -3,9 +3,10 @@ library bitmap;
 dep utils;
 dep piece;
 
-use utils::{toggle_bit, query_bit};
+use utils::{query_bit, toggle_bit};
 use piece::EMPTY;
 use std::logging::log;
+use core::ops::Shift;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {
@@ -82,7 +83,7 @@ impl core::ops::Not for BitMap {
     }
 }
 
-impl core::ops::Shift for BitMap {
+impl Shift for BitMap {
     fn lsh(self, other: u64) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
