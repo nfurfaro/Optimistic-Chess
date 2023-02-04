@@ -6,7 +6,6 @@ dep piece;
 use utils::{query_bit, toggle_bit};
 use piece::EMPTY;
 use std::logging::log;
-use core::ops::Shift;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {
