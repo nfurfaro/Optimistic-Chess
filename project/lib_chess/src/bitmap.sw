@@ -106,12 +106,10 @@ impl BitMap {
     /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
     // TODO: think of better name
     // fragmant, disperse, dilute, difuse
-    pub fn scatter(self) -> Vec<BitMap> {
+    pub fn scatter(self) -> Option<Vec<BitMap>> {
         let maybe_n = self.enumerate_bits();
         if maybe_n.is_none() {
-            let mut vec = Vec::with_capacity(1);
-            vec.push(self);
-            return vec;
+            return Option::None;
         };
 
         let n = maybe_n.unwrap();
@@ -127,7 +125,7 @@ impl BitMap {
             };
             i += 1;
         }
-        bitmaps
+        Option::Some(bitmaps)
     }
 }
 
@@ -196,13 +194,15 @@ fn test_enumerate_bits() {
     assert(n5.unwrap() == 27);
 }
 
-// #[test()]
-// fn test_scatter() {
-//     let bits = BitMap::from_u64(0b11111111);
-//     let scattered = bits.scatter();
-//     let mut i = 0;
-//     while i < scattered.len() {
-//         log(scattered.get(i).unwrap().bits);
-//         assert(scattered.get(i).unwrap().bits == 1 << i);
-//     };
-// }
+#[test()]
+fn test_scatter() {
+    let bits = BitMap::from_u64(0b11111111);
+    let scattered = bits.scatter();
+    if scattered.is_some() {
+        let unwrapped = scattered.unwrap();
+        let mut i = 0;
+        while i < unwrapped.len() {
+            assert(unwrapped.get(i).unwrap().bits == 1 << i);
+        };
+    }
+}
