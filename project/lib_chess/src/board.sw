@@ -160,8 +160,8 @@ impl Board {
         }
     }
 
-    pub fn set_castling_rights(mut self, rights: (CastleRights, CastleRights)) {
-        self.clear_castling_rights();
+    pub fn set_castling_rights(self, rights: (CastleRights, CastleRights)) -> Board {
+        let cleared_board = self.clear_castling_rights();
         let value = match rights {
             (CastleRights::NoRights, CastleRights::NoRights) => 0x0,
             (CastleRights::NoRights, CastleRights::KingSide) => 0x1,
@@ -181,15 +181,15 @@ impl Board {
             (CastleRights::Both, CastleRights::Both) => 0xF,
         };
 
-        self.metadata = self.metadata | (value << 24);
+        Board::build(cleared_board.piecemap, cleared_board.bitboard, cleared_board.metadata | (value << 24))
     }
 
-    pub fn reset_half_move_counter(mut self) {
-        self.metadata = self.metadata & HALF_MOVE_CLEARING_MASK;
+    pub fn reset_half_move_counter(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & HALF_MOVE_CLEARING_MASK)
     }
 
-    pub fn clear_full_move(mut self) {
-        self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
+    pub fn clear_full_move(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & FULL_MOVE_CLEARING_MASK)
     }
 
     // TODO: decide on error handling strategy for this to replace the use of unwrap() everywhere.
