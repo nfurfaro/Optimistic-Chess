@@ -84,21 +84,21 @@ impl Board {
         true
     }
 
-    pub fn clear_castling_rights(mut self) {
-        self.metadata = self.metadata & CASTLING_CLEARING_MASK;
+    pub fn clear_castling_rights(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & CASTLING_CLEARING_MASK)
     }
 
-    pub fn clear_en_passant(mut self) {
-        self.metadata = self.metadata & EN_PASSANT_CLEARING_MASK;
+    pub fn clear_en_passant(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & EN_PASSANT_CLEARING_MASK)
     }
 
      // clear 1 nibble corresponding to a specific square's index from a piecemap
-    pub fn clear_square(mut self, square: Square) {
+    pub fn clear_square(self, square: Square) -> Board {
         let mut index = square.to_index();
         // create a mask of all 1's except 4 0's on the target nibble.
         if index == 0 {
             let first_nibble_mask = b256_multimask(252);
-            self.piecemap = self.piecemap & first_nibble_mask;
+            Board::build(self.piecemap & first_nibble_mask, self.bitboard, self.metadata)
         } else {
             // eg: index = 42, * 4 = 168th bit
             // part 1: need 256 - 168 - 4 `1`s, << 168 + 4 bits.
@@ -107,20 +107,20 @@ impl Board {
             let nibble_index = index * 4;
             let mask_part_1 = b256_multimask((256 - (nibble_index) - 4) << nibble_index);
             let mask_part_2 = b256_multimask(nibble_index);
-            self.piecemap = self.piecemap & (mask_part_1 | mask_part_2);
+            Board::build(self.piecemap & (mask_part_1 | mask_part_2), self.bitboard, self.metadata)
         }
     }
 }
 
 impl Board {
-    pub fn write_square_to_piecemap(mut self, color: Color, piece: Piece, dest: Square) {
-        self.clear_square(dest);
+    pub fn write_square_to_piecemap(self, color: Color, piece: Piece, dest: Square) -> Board {
+        let cleared_piecemap = self.clear_square(dest).piecemap;
         let mut index = dest.to_index();
         // set the "color" bit in the piece code
         let colored_piece = piece.to_u64() | (color.to_u64() << 4);
         let mut piece_code = compose((0, 0, 0, (colored_piece)));
         let shifted = piece_code << index;
-        self.piecemap = self.piecemap | shifted;
+        Board::build(cleared_piecemap | shifted, self.bitboard, self.metadata)
     }
 
     pub fn half_move_counter(self) -> u64 {
@@ -160,8 +160,8 @@ impl Board {
         }
     }
 
-    pub fn set_castling_rights(mut self, rights: (CastleRights, CastleRights)) {
-        self.clear_castling_rights();
+    pub fn set_castling_rights(self, rights: (CastleRights, CastleRights)) -> Board {
+        let cleared_board = self.clear_castling_rights();
         let value = match rights {
             (CastleRights::NoRights, CastleRights::NoRights) => 0x0,
             (CastleRights::NoRights, CastleRights::KingSide) => 0x1,
@@ -181,15 +181,15 @@ impl Board {
             (CastleRights::Both, CastleRights::Both) => 0xF,
         };
 
-        self.metadata = self.metadata | (value << 24);
+        Board::build(cleared_board.piecemap, cleared_board.bitboard, cleared_board.metadata | (value << 24))
     }
 
-    pub fn reset_half_move_counter(mut self) {
-        self.metadata = self.metadata & HALF_MOVE_CLEARING_MASK;
+    pub fn reset_half_move_counter(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & HALF_MOVE_CLEARING_MASK)
     }
 
-    pub fn clear_full_move(mut self) {
-        self.metadata = self.metadata & FULL_MOVE_CLEARING_MASK;
+    pub fn clear_full_move(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, self.metadata & FULL_MOVE_CLEARING_MASK)
     }
 
     // TODO: decide on error handling strategy for this to replace the use of unwrap() everywhere.
@@ -269,7 +269,7 @@ impl Board {
     }
 
     // wraps Square::clear() & Square::set() ??                  REVIEW !
-    pub fn move_piece(mut self, src: Square, dest: Square)  {
+    pub fn move_piece(mut self, src: Square, dest: Square) -> Board {
         match self.read_square(src.to_index()) {
             Option::None => revert(0),
             Option::Some((color, piece)) => {

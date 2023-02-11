@@ -5,13 +5,10 @@ dep color;
 dep piece;
 
 use board::Board;
-use color::{Color, BLACK, WHITE};
-use std::{
-    call_frames::contract_id,
-    hash::keccak256,
-};
+use color::{BLACK, Color, WHITE};
+use std::{call_frames::contract_id, hash::keccak256};
 
-// TODO: add methods to conver to & from a status code, i.e:
+// TODO: add methods to convert to & from a status code, i.e:
 // 0, 1, 2, 3
 pub enum Status {
     Standby: (),   // at least 1 player has not deposited bond
@@ -32,7 +29,14 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(p1: Identity, p2: Identity, p1_bond_payed: bool,  p2_bond_payed: bool, salt: u64, status: Status) -> Game {
+    pub fn new(
+        p1: Identity,
+        p2: Identity,
+        p1_bond_payed: bool,
+        p2_bond_payed: bool,
+        salt: u64,
+        status: Status,
+    ) -> Game {
         let board = Board::new();
         let hash = keccak256((board.piecemap, board.metadata));
         Game {
@@ -48,10 +52,15 @@ impl Game {
     }
 
     pub fn id(self) -> b256 {
-        keccak256((self.player_white, self.player_black, self.salt, contract_id()))
+        keccak256((
+            self.player_white,
+            self.player_black,
+            self.salt,
+            contract_id(),
+        ))
     }
 
-    pub fn hash_state(mut self) -> b256 {
+    pub fn hash_state(self) -> b256 {
         keccak256((self.board.piecemap, self.board.metadata))
     }
 }
