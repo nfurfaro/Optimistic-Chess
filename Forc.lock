@@ -17,7 +17,7 @@ dependencies = [
 
 [[package]]
 name = 'core'
-source = 'path+from-root-0AAC80A216C4598E'
+source = 'path+from-root-520DF464213917E2'
 
 [[package]]
 name = 'lib_chess'
@@ -26,5 +26,5 @@ dependencies = ['std']
 
 [[package]]
 name = 'std'
-source = 'git+https://github.com/fuellabs/sway?rev#9a00b5ab67ce67c5f525bdc332f15d6b6e06eb38'
+source = 'git+https://github.com/fuellabs/sway?tag=v0.35.1#1f9debfaf9b85d41f3b704c45633eb4daddcb594'
 dependencies = ['core']

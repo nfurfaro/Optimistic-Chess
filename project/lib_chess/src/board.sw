@@ -217,7 +217,8 @@ impl Board {
 impl Board {
     // convert bitboard to piecemap
     // TODO: do I ever need to perform all these steps, or can I always just use the latest Move to update 2 nibbles in the piecemap?
-    pub fn generate_piecemap(mut self) {
+    pub fn generate_piecemap(self) -> Board {
+        let mut new_board = Board::new();
         let mut i = 0;
         let mut mask = BLANK;
         let mut color = 0;
@@ -263,9 +264,11 @@ impl Board {
                 WHITE
             };
 
-            self.write_square_to_piecemap(color, Piece::try_from_u64(piece).unwrap(), Square::from_index(i).unwrap());
+            new_board = self.write_square_to_piecemap(color, Piece::try_from_u64(piece).unwrap(), Square::from_index(i).unwrap());
             i += 1;
         };
+
+        new_board
     }
 
     // wraps Square::clear() & Square::set() ??                  REVIEW !
@@ -287,25 +290,26 @@ impl Board {
         Color::try_from_u64(query_bit(self.metadata, 0)).unwrap()
     }
 
-    pub fn toggle_side_to_move(mut self) {
-        self.metadata = toggle_bit(self.metadata, 0);
+    pub fn toggle_side_to_move(self) -> Board {
+        Board::build(self.piecemap, self.bitboard, toggle_bit(self.metadata, 0))
     }
 
-    pub fn increment_half_move_counter(mut self) {
-        let value = self.half_move_counter();
-        self.reset_half_move_counter();
-        self.metadata = self.metadata | ((value + 1) << 8);
+    pub fn increment_half_move_counter(self) -> Board {
+        let mut new_board = self.reset_half_move_counter();
+        new_board.metadata = self.metadata | ((self.half_move_counter() + 1) << 8);
+        new_board
     }
 
-    pub fn increment_full_move_counter(mut self) {
-        let value = self.full_move_counter();
-        self.clear_full_move();
-        self.metadata = self.metadata | ((value + 1) << 32);
+    pub fn increment_full_move_counter(self) -> Board {
+        let mut new_board = self.clear_full_move();
+        new_board.metadata = self.metadata | ((self.full_move_counter() + 1) << 32);
+        new_board
     }
 
-    pub fn set_en_passant(mut self, target: Square) {
-        self.clear_en_passant();
-        self.metadata = self.metadata | target.to_index() << 16;
+    pub fn set_en_passant(self, target: Square) -> Board {
+        let mut new_board = self.clear_en_passant();
+        new_board.metadata = self.metadata | target.to_index() << 16;
+        new_board
     }
 }
 
@@ -414,28 +418,19 @@ fn test_new_board() {
 //     p1.transition(m1);
 //     assert(p1.half_move_counter() == 1);
 // }
-// #[test()]
-// fn test_increment_full_move_counter() {
-//     let metadata = 0b00000000_00000000_00000000_00000000_00001111_00000000_00000000_00000001;
-//     let mut p1 = Board::build(INITIAL_PIECEMAP, BitBoard::new(),metadata);
-//     let m1 = Move::build(Square::a2, Square::a3, Option::None);
-//     p1.transition(m1);
-//     assert(p1.half_move_counter() == 1);
-//     assert(p1.full_move_counter() == 0);
-//     p1.transition(m1);
-//     assert(p1.half_move_counter() == 2);
-//     assert(p1.full_move_counter() == 1);
-//     p1.transition(m1);
-//     assert(p1.half_move_counter() == 3);
-//     assert(p1.full_move_counter() == 1);
-//     p1.transition(m1);
-//     assert(p1.half_move_counter() == 4);
-//     assert(p1.full_move_counter() == 2);
-// }
+#[test()]
+fn test_increment_full_move_counter() {
+    let metadata = 0b00000000_00000000_00000000_00000000_00001111_00000000_00000000_00000001;
+    let mut b1 = Board::build(INITIAL_PIECEMAP, BitBoard::new(), metadata);
+    assert(b1.full_move_counter() == 0);
+    let b2 = b1.increment_full_move_counter();
+    assert(b2.full_move_counter() == 1);
+}
+
 #[test()]
 fn test_increment_half_move_counter() {
     let mut p1 = Board::new();
     assert(p1.half_move_counter() == 0);
-    p1.increment_half_move_counter();
-    assert(p1.half_move_counter() == 1);
+    let p2 = p1.increment_half_move_counter();
+    assert(p2.half_move_counter() == 1);
 }
