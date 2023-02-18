@@ -272,16 +272,16 @@ impl Board {
     }
 
     // wraps Square::clear() & Square::set() ??                  REVIEW !
-    pub fn move_piece(mut self, src: Square, dest: Square) -> Board {
+    pub fn move_piece(self, src: Square, dest: Square) -> Board {
         match self.read_square(src.to_index()) {
             Option::None => revert(0),
             Option::Some((color, piece)) => {
                 // clear src
-                self.clear_square(src);
+                let mut new_board = self.clear_square(src);
                 // TODO: clear dest if !color, and must be legal move
-                self.clear_square(dest);
+                new_board = new_board.clear_square(dest);
                 // set src
-                self.write_square_to_piecemap(color, piece, dest)
+                new_board.write_square_to_piecemap(color, piece, dest)
             },
         }
     }
@@ -315,7 +315,8 @@ impl Board {
 
 impl Board {
     // TODO: review this, inputs/outputs & mutation of self?
-    pub fn write_to_bitboard(mut self, board: Board) {
+    pub fn write_to_bitboard(self, board: Board) -> Board {
+        let mut new_board = Board::build(self.piecemap, self.bitboard, self.metadata);
         let mut bitboard = BitBoard::new();
 
         let mut s = 0;
@@ -324,70 +325,71 @@ impl Board {
             let (color, piece) = board.read_square(s).unwrap();
             if color == BLACK {
                 match piece {
-                    Piece::Pawn => self.bitboard.black_pawns = BitMap::from_u64(turn_on_bit(bitboard.black_pawns.bits, i)),
-                    Piece::Bishop => self.bitboard.black_bishops = BitMap::from_u64(turn_on_bit(bitboard.black_bishops.bits, i)),
-                    Piece::Rook => self.bitboard.black_rooks = BitMap::from_u64(turn_on_bit(bitboard.black_rooks.bits, i)),
-                    Piece::Knight => self.bitboard.black_knights = BitMap::from_u64(turn_on_bit(bitboard.black_knights.bits, i)),
-                    Piece::Queen => self.bitboard.black_queen = BitMap::from_u64(turn_on_bit(bitboard.black_queen.bits, i)),
-                    Piece::King => self.bitboard.black_king = BitMap::from_u64(turn_on_bit(bitboard.black_king.bits, i)),
+                    Piece::Pawn => new_board.bitboard.black_pawns = BitMap::from_u64(turn_on_bit(bitboard.black_pawns.bits, i)),
+                    Piece::Bishop => new_board.bitboard.black_bishops = BitMap::from_u64(turn_on_bit(bitboard.black_bishops.bits, i)),
+                    Piece::Rook => new_board.bitboard.black_rooks = BitMap::from_u64(turn_on_bit(bitboard.black_rooks.bits, i)),
+                    Piece::Knight => new_board.bitboard.black_knights = BitMap::from_u64(turn_on_bit(bitboard.black_knights.bits, i)),
+                    Piece::Queen => new_board.bitboard.black_queen = BitMap::from_u64(turn_on_bit(bitboard.black_queen.bits, i)),
+                    Piece::King => new_board.bitboard.black_king = BitMap::from_u64(turn_on_bit(bitboard.black_king.bits, i)),
                 }
             } else {
                 match piece {
-                    Piece::Pawn => self.bitboard.white_pawns = BitMap::from_u64(turn_on_bit(bitboard.white_pawns.bits, i)),
-                    Piece::Bishop => self.bitboard.white_bishops = BitMap::from_u64(turn_on_bit(bitboard.white_bishops.bits, i)),
-                    Piece::Rook => self.bitboard.white_rooks = BitMap::from_u64(turn_on_bit(bitboard.white_rooks.bits, i)),
-                    Piece::Knight => self.bitboard.white_knights = BitMap::from_u64(turn_on_bit(bitboard.white_knights.bits, i)),
-                    Piece::Queen => self.bitboard.white_queen = BitMap::from_u64(turn_on_bit(bitboard.white_queen.bits, i)),
-                    Piece::King => self.bitboard.white_king = BitMap::from_u64(turn_on_bit(bitboard.white_king.bits, i)),
+                    Piece::Pawn => new_board.bitboard.white_pawns = BitMap::from_u64(turn_on_bit(bitboard.white_pawns.bits, i)),
+                    Piece::Bishop => new_board.bitboard.white_bishops = BitMap::from_u64(turn_on_bit(bitboard.white_bishops.bits, i)),
+                    Piece::Rook => new_board.bitboard.white_rooks = BitMap::from_u64(turn_on_bit(bitboard.white_rooks.bits, i)),
+                    Piece::Knight => new_board.bitboard.white_knights = BitMap::from_u64(turn_on_bit(bitboard.white_knights.bits, i)),
+                    Piece::Queen => new_board.bitboard.white_queen = BitMap::from_u64(turn_on_bit(bitboard.white_queen.bits, i)),
+                    Piece::King => new_board.bitboard.white_king = BitMap::from_u64(turn_on_bit(bitboard.white_king.bits, i)),
                 }
             };
             s += 4;
             i += 1;
         }
+        new_board
     }
 
     // make updates to data structure, but stop before writing to storage or logging events.
-    pub fn apply_move(mut self, move: Move) {
+    pub fn apply_move(self, move: Move) -> Board {
         // update metadata:
-        self.toggle_side_to_move();
-        let turn = self.increment_half_move_counter();
+        let mut new_board = self.toggle_side_to_move();
+        // let turn = self.increment_half_move_counter();
         let half_move = self.half_move_counter();
         if half_move > 0 && half_move % 2 == 0 {
-            self.increment_full_move_counter();
+            new_board = new_board.increment_full_move_counter();
         };
 
         if move.pawn_was_moved() || move.piece_was_captured() {
-            self.reset_half_move_counter();
+            new_board = new_board.reset_half_move_counter();
         };
 
         // update en_passant if needed
-        if move.dest.to_index() == self.en_passant_target().to_index()
+        if move.dest.to_index() == new_board.en_passant_target().to_index()
         {
-            self.clear_en_passant();
+            new_board = new_board.clear_en_passant();
         };
 
         /**
         let (allowed, maybe_square) = move.allows_en_passant();
         if allowed {
-            self.set_en_passant(maybe_square.unwrap())
+            new_board = new_board.set_en_passant(maybe_square.unwrap())
         }
         */
 
         // update castling_rights if needed
         if move.is_castling() {
-            let mut rights = self.castling_rights();
-            let turn_to_move = self.side_to_move();
+            let mut rights = new_board.castling_rights();
+            let turn_to_move = new_board.side_to_move();
             match turn_to_move {
                 Color::Black => {
-                    self.set_castling_rights((CastleRights::NoRights, rights.unwrap()[0]));
+                    new_board = new_board.set_castling_rights((CastleRights::NoRights, rights.unwrap()[0]));
                 },
                 Color::White => {
-                    self.set_castling_rights((rights.unwrap()[1], CastleRights::NoRights));
+                    new_board = new_board.set_castling_rights((rights.unwrap()[1], CastleRights::NoRights));
                 },
             };
         }
 
-        self.move_piece(move.source, move.dest  );
+        new_board.move_piece(move.source, move.dest)
     }
 }
 
@@ -401,23 +403,6 @@ fn test_new_board() {
     assert(board.metadata == INITIAL_METADATA);
 }
 
-// #[test()]
-// fn test_transition_side_to_move() {
-//     let mut p1 = Board::build(INITIAL_PIECEMAP, BitBoard::new(), INITIAL_METADATA);
-//     let m1 = Move::build(Square::a3, Square::a4, Option::None);
-//     p1.transition(m1);
-//     assert(p1.side_to_move() == BLACK);
-//     let m2 = Move::build(Square::a2, Square::a3, Option::None);
-//     p1.transition(m2);
-//     assert(p1.side_to_move() == WHITE);
-// }
-// #[test()]
-// fn test_transition_half_move_increment() {
-//     let mut p1 = Board::build(INITIAL_PIECEMAP, BitBoard::new(),INITIAL_METADATA);
-//     let m1 = Move::build(Square::a2, Square::a3, Option::None);
-//     p1.transition(m1);
-//     assert(p1.half_move_counter() == 1);
-// }
 #[test()]
 fn test_increment_full_move_counter() {
     let metadata = 0b00000000_00000000_00000000_00000000_00001111_00000000_00000000_00000001;
