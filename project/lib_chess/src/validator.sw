@@ -316,14 +316,6 @@ fn king_attacks(bits: BitBoard, color: Color) -> BitMap {
     }
 }
 
-
-/** Shared legality checks:
-    - a player can only move their own piece
-    assert(own_color_moved());
-    - a player can only capture a piece of the opposite color
-    assert(opposite_color_captured();
-
-*/
 fn pawn_validation(board: Board, move: Move) {
     // get pawn possible moves
     // add en_passant
