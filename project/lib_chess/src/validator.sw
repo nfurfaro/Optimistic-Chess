@@ -243,10 +243,13 @@ fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
 
         // convert a bitmap of n knights into n bitmaps with 1 knight each
         let knight_maps = knights.scatter();
-
+        if knight_maps.is_none() {
+            return BitMap::from_u64(EMPTY);
+        };
+        let unwrapped = knight_maps.unwrap();
         let mut i = 0;
-        while i < knight_maps.len() {
-            let bits = knight_maps.get(i).unwrap();
+        while i < unwrapped.len() {
+            let bits = unwrapped.get(i).unwrap();
             attacks = match (rank_1, file_a, rank_8, file_h) {
                 // a1 corner: can attack 2 squares
                 (true, true, false, false) => attacks | (bits << 17) | (bits << 10),

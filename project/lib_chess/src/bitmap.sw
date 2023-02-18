@@ -3,7 +3,7 @@ library bitmap;
 dep utils;
 dep piece;
 
-use utils::{toggle_bit, query_bit};
+use utils::{query_bit, toggle_bit};
 use piece::EMPTY;
 use std::logging::log;
 
@@ -42,7 +42,7 @@ impl core::ops::BitwiseAnd for BitMap {
     fn binary_and(self, other: Self) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
-                and r3 r1 r2;
+                and  r3 r1 r2;
                 r3: u64
             },
         }
@@ -53,7 +53,7 @@ impl core::ops::BitwiseOr for BitMap {
     fn binary_or(self, other: Self) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
-                or r3 r1 r2;
+                or   r3 r1 r2;
                 r3: u64
             },
         }
@@ -64,7 +64,7 @@ impl core::ops::BitwiseXor for BitMap {
     fn binary_xor(self, other: Self) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other.bits, r3) {
-                xor r3 r1 r2;
+                xor  r3 r1 r2;
                 r3: u64
             },
         }
@@ -75,18 +75,18 @@ impl core::ops::Not for BitMap {
     fn not(self) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2) {
-                not r2 r1;
+                not  r2 r1;
                 r2: u64
             },
         }
     }
 }
 
-impl core::ops::Shift for BitMap {
+impl Shift for BitMap {
     fn lsh(self, other: u64) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
-                sll r3 r1 r2;
+                sll  r3 r1 r2;
                 r3: u64
             },
         }
@@ -95,7 +95,7 @@ impl core::ops::Shift for BitMap {
     fn rsh(self, other: u64) -> Self {
         BitMap {
             bits: asm(r1: self.bits, r2: other, r3) {
-                srl r3 r1 r2;
+                srl  r3 r1 r2;
                 r3: u64
             },
         }
@@ -106,12 +106,10 @@ impl BitMap {
     /// given a bitmap with n bits set, return a Vec of n bitmaps, each with 1 bit set.
     // TODO: think of better name
     // fragmant, disperse, dilute, difuse
-    pub fn scatter(self) -> Vec<BitMap> {
+    pub fn scatter(self) -> Option<Vec<BitMap>> {
         let maybe_n = self.enumerate_bits();
         if maybe_n.is_none() {
-            let mut vec = Vec::with_capacity(1);
-            vec.push(self);
-            return vec;
+            return Option::None;
         };
 
         let n = maybe_n.unwrap();
@@ -127,7 +125,7 @@ impl BitMap {
             };
             i += 1;
         }
-        bitmaps
+        Option::Some(bitmaps)
     }
 }
 
@@ -179,30 +177,32 @@ pub const BLACK_PIECES: BitMap = BitMap::from_u64(0xFFFF000000000000);
 pub const ALL_PIECES: BitMap = BitMap::from_u64(0xFFFF00000000FFFF);
 pub const BLANK: BitMap = BitMap::from_u64(0x0);
 
-// #[test()]
-// fn test_enumerate_bits() {
-//     let n1 = BitMap::from_u64(u64::max()).enumerate_bits();
-//     let n2 = BitMap::from_u64(u64::min()).enumerate_bits();
-//     let n3 = BitMap::from_u64(1).enumerate_bits();
-//     let n4 = BitMap::from_u64(0b011010011).enumerate_bits();
-//     let n5 = BitMap::from_u64(0b011010011011010011011011011011010011011011011).enumerate_bits();
+#[test()]
+fn test_enumerate_bits() {
+    let n1 = BitMap::from_u64(u64::max()).enumerate_bits();
+    let n2 = BitMap::from_u64(u64::min()).enumerate_bits();
+    let n3 = BitMap::from_u64(1).enumerate_bits();
+    let n4 = BitMap::from_u64(0b011010011).enumerate_bits();
+    let n5 = BitMap::from_u64(0b011010011011010011011011011011010011011011011).enumerate_bits();
 
-//     assert(n1.is_some());
-//     assert(n2.is_none());
-//     assert(n3.is_some());
-//     assert(n1.unwrap() == 64);
-//     assert(n3.unwrap() == 1);
-//     assert(n4.unwrap() == 5);
-//     assert(n5.unwrap() == 27);
-// }
+    assert(n1.is_some());
+    assert(n2.is_none());
+    assert(n3.is_some());
+    assert(n1.unwrap() == 64);
+    assert(n3.unwrap() == 1);
+    assert(n4.unwrap() == 5);
+    assert(n5.unwrap() == 27);
+}
 
 // #[test()]
 // fn test_scatter() {
 //     let bits = BitMap::from_u64(0b11111111);
 //     let scattered = bits.scatter();
-//     let mut i = 0;
-//     while i < scattered.len() {
-//         log(scattered.get(i).unwrap().bits);
-//         assert(scattered.get(i).unwrap().bits == 1 << i);
-//     };
+//     if scattered.is_some() {
+//         let unwrapped = scattered.unwrap();
+//         let mut i = 0;
+//         while i < unwrapped.len() {
+//             assert(unwrapped.get(i).unwrap().bits == 1 << i);
+//         };
+//     }
 // }

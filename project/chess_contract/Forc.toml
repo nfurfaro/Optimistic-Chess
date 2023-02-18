@@ -7,4 +7,3 @@ name = "chess_contract"
 [dependencies]
 chess_abi = {path = "../chess_abi"}
 lib_chess = {path = "../lib_chess"}
-std = { path = "../../../../fuel/sway/sway-lib-std" }

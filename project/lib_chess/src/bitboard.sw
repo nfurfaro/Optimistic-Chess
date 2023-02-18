@@ -67,7 +67,7 @@ impl BitBoard {
 /// TESTS
 //////////////////////////////////////////////////////////////////
 #[test()]
-fn test_new_bitstack() {
+fn test_new_bitboard() {
     let board = BitBoard::new();
     assert(board.all == ALL_PIECES);
     assert(board.pawns == BLACK_PAWNS | WHITE_PAWNS);

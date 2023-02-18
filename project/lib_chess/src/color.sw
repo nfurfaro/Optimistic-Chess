@@ -5,7 +5,6 @@ use errors::ChessError;
 
 pub const BLACK: Color = Color::Black; // 0
 pub const WHITE: Color = Color::White; // 1
-
 pub enum Color {
     Black: (),
     White: (),
@@ -28,7 +27,7 @@ impl Color {
     }
 }
 
-impl core::ops::Eq for Color {
+impl Eq for Color {
     fn eq(self, other: Self) -> bool {
         match (self, other) {
             (Color::Black, Color::Black) => true,
