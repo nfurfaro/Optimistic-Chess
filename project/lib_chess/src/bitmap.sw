@@ -1,10 +1,12 @@
 library bitmap;
 
+dep color;
 dep utils;
 dep piece;
 
 use utils::{query_bit, toggle_bit};
 use piece::EMPTY;
+use color::{BLACK, Color, WHITE};
 use std::logging::log;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
@@ -126,6 +128,28 @@ impl BitMap {
             i += 1;
         }
         Option::Some(bitmaps)
+    }
+
+    // pub fn is_on_edge(self) -> bool {
+    //     (self & EDGES) != BLANK
+    // }
+    // pub fn is_on_corner(self) -> bool {
+    //     (self & CORNERS) != BLANK
+    // }
+    pub fn is_on_rank_1(self) -> bool {
+        (self & RANK_1) != BLANK
+    }
+
+    pub fn is_on_rank_8(self) -> bool {
+        (self & RANK_8) != BLANK
+    }
+
+    pub fn is_on_file_a(self) -> bool {
+        (self & FILE_A) != BLANK
+    }
+
+    pub fn is_on_file_h(self) -> bool {
+        (self & FILE_H) != BLANK
     }
 }
 
