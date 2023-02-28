@@ -13,7 +13,7 @@ use color::*;
 use move::Move;
 
 pub fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
-    let mut attacks = BitMap::from_u64(EMPTY);
+    let mut attacks = BitMap::from_u64(0);
     let knights = match color {
         Color::Black => bits.knights & bits.black,
         Color::White => bits.knights & bits.white,
@@ -34,7 +34,7 @@ pub fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
         // convert a bitmap of n knights into n bitmaps with 1 knight each
         let knight_maps = knights.scatter();
         if knight_maps.is_none() {
-            return BitMap::from_u64(EMPTY);
+            return BitMap::from_u64(0);
         };
         let unwrapped = knight_maps.unwrap();
         let mut i = 0;

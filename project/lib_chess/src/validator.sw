@@ -2,6 +2,7 @@ library validator;
 
 // dep bitboard;
 dep color;
+dep bitboard;
 dep bitmap;
 dep board;
 dep errors;
@@ -20,6 +21,7 @@ dep knight;
 
 // use bitboard::BitBoard;
 use color::{BLACK, Color, WHITE};
+use bitboard::BitBoard;
 use bitmap::*;
 use board::Board;
 use errors::ChessError;
@@ -29,7 +31,6 @@ use piece::{EMPTY, Piece};
 use special::CastleRights;
 use square::Square;
 use utils::turn_on_bit;
-use piece_types::pawn::*;
 use pawn::*;
 use king::*;
 use queen::*;
@@ -88,7 +89,7 @@ K  0  0  0  0  0  0  0
 
 */
 
-fn threat_map(bits: BitMap, color: Color) -> BitMap {
+fn threat_map(bits: BitBoard, color: Color) -> BitMap {
     pawn_attacks(bits, color) | bishop_attacks(bits, color) | rook_attacks(bits, color) | knight_attacks(bits, color) | queen_attacks(bits, color) | king_attacks(bits, color)
 }
 
