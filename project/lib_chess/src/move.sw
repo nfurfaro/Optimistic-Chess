@@ -1,10 +1,10 @@
-library move;
+library;
 
-dep square;
-dep piece;
+// mod square;
+// mod piece;
 
-use square::Square;
-use piece::Piece;
+use ::square::Square;
+use ::piece::Piece;
 
 // represents a move internally, but also represents the "message" format signed
 // by players when making moves offchain.

@@ -1,10 +1,10 @@
-library bitmap;
+library;
 
-dep utils;
-dep piece;
+// mod utils;
+// mod piece;
 
-use utils::{query_bit, toggle_bit};
-use piece::EMPTY;
+use ::utils::{query_bit, toggle_bit};
+use ::piece::EMPTY;
 use std::logging::log;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)

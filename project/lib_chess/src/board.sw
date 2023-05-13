@@ -1,24 +1,24 @@
-library board;
+library;
 
-dep bitboard;
-dep bitmap;
-dep color;
-dep errors;
-dep move;
-dep piece;
-dep special;
-dep square;
-dep utils;
+// pub mod bitboard;
+// pub mod bitmap;
+// pub mod color;
+// pub mod errors;
+// pub mod move;
+// pub mod piece;
+// pub mod special;
+// pub mod square;
+// pub mod utils;
 
-use bitboard::BitBoard;
-use bitmap::*;
-use color::{BLACK, Color, WHITE};
-use errors::*;
-use move::Move;
-use piece::{BISHOP, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK};
-use special::CastleRights;
-use square::Square;
-use utils::{b256_multimask, compose, decompose, multi_bit_mask, query_bit, toggle_bit, turn_on_bit};
+use ::bitboard::BitBoard;
+use ::bitmap::*;
+use ::color::{BLACK, Color, WHITE};
+use ::errors::*;
+use ::move::Move;
+use ::piece::{BISHOP, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK};
+use ::special::CastleRights;
+use ::square::Square;
+use ::utils::{b256_multimask, compose, decompose, multi_bit_mask, query_bit, toggle_bit, turn_on_bit};
 /**
 
 note: for more detail about how pieces are encoded, see ./piece.sw

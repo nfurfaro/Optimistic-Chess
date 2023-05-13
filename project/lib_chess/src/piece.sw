@@ -1,8 +1,8 @@
-library piece;
+library;
 
-dep errors;
+// mod errors;
 
-use errors::ChessError;
+use ::errors::ChessError;
 
 /**
 4 bits to represent piece on each square:

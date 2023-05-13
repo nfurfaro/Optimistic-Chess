@@ -1,28 +1,28 @@
-library validator;
+library;
 
-dep bitboard;
-dep color;
-dep bitmap;
-dep board;
-dep errors;
-dep game;
-dep move;
-dep piece;
-dep special;
-dep square;
-dep utils;
+// pub mod bitboard;
+// pub mod color;
+// pub mod bitmap;
+// pub mod board;
+// pub mod errors;
+// pub mod game;
+// pub mod move;
+// pub mod piece;
+// pub mod special;
+// pub mod square;
+// pub mod utils;
 
-use bitboard::BitBoard;
-use color::{BLACK, Color, WHITE};
-use bitmap::*;
-use board::Board;
-use errors::ChessError;
-use game::{Game, Status};
-use move::Move;
-use piece::{EMPTY, Piece};
-use special::CastleRights;
-use square::Square;
-use utils::turn_on_bit;
+use ::bitboard::BitBoard;
+use ::color::{BLACK, Color, WHITE};
+use ::bitmap::*;
+use ::board::Board;
+use ::errors::ChessError;
+use ::game::{Game, Status};
+use ::move::Move;
+use ::piece::{EMPTY, Piece};
+use ::special::CastleRights;
+use ::square::Square;
+use ::utils::turn_on_bit;
 
 /**
 

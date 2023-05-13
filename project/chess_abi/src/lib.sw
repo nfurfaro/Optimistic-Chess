@@ -1,4 +1,4 @@
-library chess_abi;
+library;
 
 use std::b512::B512;
 use lib_chess::{game::Game, move::Move, events::*,};
