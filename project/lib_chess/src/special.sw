@@ -1,4 +1,4 @@
-library special;
+library;
 
 pub enum CastleRights {
     NoRights: (),

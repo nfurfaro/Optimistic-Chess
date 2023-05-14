@@ -1,93 +1,22 @@
-library validator;
+library;
 
-// dep bitboard;
-dep color;
-dep bitboard;
-dep bitmap;
-dep board;
-dep errors;
-dep game;
-dep move;
-dep piece;
-dep special;
-dep square;
-dep utils;
-dep pawn;
-dep king;
-dep queen;
-dep rook;
-dep bishop;
-dep knight;
-
-// use bitboard::BitBoard;
-use color::{BLACK, Color, WHITE};
-use bitboard::BitBoard;
-use bitmap::*;
-use board::Board;
-use errors::ChessError;
-use game::{Game, Status};
-use move::Move;
-use piece::{EMPTY, Piece};
-use special::CastleRights;
-use square::Square;
-use utils::turn_on_bit;
-use pawn::*;
-use king::*;
-use queen::*;
-use rook::*;
-use bishop::*;
-use knight::*;
-
-/**
-
-Square Numbering
-
-56 57 58 59 60 61 62 63
-48 49 50 51 52 53 54 55
-40 41 42 43 44 45 46 47
-32 33 34 35 36 37 38 39
-24 25 26 27 28 29 30 31
-16 17 18 19 20 21 22 23
-08 09 10 11 12 13 14 15
-00 01 02 03 04 05 06 07
-
-0  0  0  1  0  0  0  0     3 and 59
-0  0  0  0  0  0  0  0     3 % 8 =  3
-0  0  0  0  0  0  0  0     59 % 8 = 3
-0  0  0  0  0  0  0  0
-0  0  0  0  0  0  0  0
-0  0  0  0  0  0  0  0
-0  0  0  0  0  0  0  0
-0  0  0  1  0  0  0  0
-
-0  0  0  0  0  0  0  0     24 and 31
-0  0  0  0  0  0  0  0     24 / 8 = 4
-0  0  0  0  0  0  0  0     31 / 8 = 4
-0  0  0  0  0  0  0  0
-1  0  0  0  0  0  0  1
-0  0  0  0  0  0  0  0
-0  0  0  0  0  0  0  0
-0  0  0  0  0  0  0  0
-
-0  0  0  0  0  0  0  0  << 17, << 10, >> 6, >> 10, >> 15, >> 17, << 6,  << 15,
-0  0  0  0  0  0  0  0
-0  0  0  x  0  x  0  0
-0  0  x  0  0  0  x  0
-0  0  0  0  K  0  0  0
-0  0  x  0  0  0  x  0
-0  0  0  x  0  x  0  0
-K  0  0  0  0  0  0  0
-
-
-  noWe         nort         noEa
-        << 7   << 8   << 9
-              \  |  /
-  west  >> 1 <-  0 -> << 1  east
-              /  |  \
-        >> 9  >> 8    >> 7
-  soWe         sout         soEa
-
-*/
+use ::bitboard::BitBoard;
+use ::color::{BLACK, Color, WHITE};
+use ::bitmap::*;
+use ::board::Board;
+use ::errors::ChessError;
+use ::game::{Game, Status};
+use ::move::Move;
+use ::piece::{EMPTY, Piece};
+use ::special::CastleRights;
+use ::square::Square;
+use ::utils::turn_on_bit;
+use ::pawn::*;
+use ::king::*;
+use ::queen::*;
+use ::rook::*;
+use ::bishop::*;
+use ::knight::*;
 
 fn threat_map(bits: BitBoard, color: Color) -> BitMap {
     pawn_attacks(bits, color) | bishop_attacks(bits, color) | rook_attacks(bits, color) | knight_attacks(bits, color) | queen_attacks(bits, color) | king_attacks(bits, color)
@@ -207,7 +136,7 @@ pub fn verify_move(game: Game, move: Move) {
     // don't bother validating moves if game is over
     match game.status {
         Status::Active => (),
-        _ => (),// TODO
+        _ => (), // TODO
     };
 
     // check full-move counter.
@@ -228,7 +157,7 @@ pub fn verify_move(game: Game, move: Move) {
         Option::Some((color, piece)) => {
             // does it belong to current side to move?
             if color != turn_to_move {
-               revert(0);
+                revert(0);
             };
         },
     }
@@ -237,7 +166,7 @@ pub fn verify_move(game: Game, move: Move) {
     match game.board.read_square(move.source.to_index()) {
         Option::None => (),
         Option::Some((color, piece)) => {
-              assert(color != turn_to_move);
+            assert(color != turn_to_move);
         },
     }
 
@@ -255,14 +184,14 @@ pub fn verify_move(game: Game, move: Move) {
 }
 
 // validation
-    // check metadata
-    // src & dest must be valid squares
-    // if source and dest are of type Square, they can only be valid squares!
-    // assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
-    // is move a castle? check rights & legality
+// check metadata
+// src & dest must be valid squares
+// if source and dest are of type Square, they can only be valid squares!
+// assert(move.source.is_in_bounds() && move.dest.is_in_bounds());
+// is move a castle? check rights & legality
 
-    //   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
-    //   - blocking pieces on squares between?
+//   - is piece pinned? (May still be able to move (sliding pice on pinning ray, pawn en passant if diagonal pinner))
+//   - blocking pieces on squares between?
 
 pub fn validate(game: Game, move: Move) -> bool {
     let side_to_move = game.board.side_to_move();

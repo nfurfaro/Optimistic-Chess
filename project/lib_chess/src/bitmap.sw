@@ -1,8 +1,4 @@
-library bitmap;
-
-dep color;
-dep utils;
-dep piece;
+library;
 
 use utils::{query_bit, toggle_bit};
 use piece::EMPTY;

@@ -1,4 +1,4 @@
-library events;
+library;
 
 pub struct VictoryEvent {}
 pub struct MoveMadeEvent {}

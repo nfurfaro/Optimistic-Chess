@@ -1,7 +1,7 @@
-library square;
+library;
 
-dep errors;
-use errors::ChessError;
+// mod errors;
+use ::errors::ChessError;
 /**
 Square Numbering
 

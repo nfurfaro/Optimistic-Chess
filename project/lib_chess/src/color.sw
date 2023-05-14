@@ -1,7 +1,6 @@
-library color;
+library;
 
-dep errors;
-use errors::ChessError;
+use ::errors::ChessError;
 
 pub const BLACK: Color = Color::Black; // 0
 pub const WHITE: Color = Color::White; // 1

@@ -1,6 +1,6 @@
 contract;
 
-use chess_abi::Chess;
+use ::chess_abi::Chess;
 use lib_chess::{board::Board, errors::ChessError, game::{Game, Status}, move::Move};
 use std::{
     call_frames::{

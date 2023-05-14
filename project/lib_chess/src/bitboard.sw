@@ -1,7 +1,7 @@
-library bitboard;
+library;
 
-dep bitmap;
-use bitmap::*;
+// mod bitmap;
+use ::bitmap::*;
 
 /// The BitBoard type can be thought of as a stack of layers
 /// which can be selectively combined to query the location of pieces.

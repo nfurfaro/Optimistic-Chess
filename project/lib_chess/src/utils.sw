@@ -1,4 +1,4 @@
-library utils;
+library;
 
 use std::constants::ZERO_B256;
 
