@@ -1,16 +1,11 @@
-library queen;
+library;
 
-dep bitboard;
-dep bitmap;
-dep color;
-dep board;
-dep move;
 
-use bitboard::BitBoard;
-use bitmap::{BitMap, BLANK};
-use board::Board;
-use color::*;
-use move::Move;
+use ::bitboard::BitBoard;
+use ::bitmap::{BitMap, BLANK};
+use ::board::Board;
+use ::color::*;
+use ::move::Move;
 
 pub fn queen_attacks(bits: BitBoard, color: Color) -> BitMap {
     // TODO: Implement me !

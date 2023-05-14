@@ -1,9 +1,9 @@
 library;
 
-use utils::{query_bit, toggle_bit};
-use piece::EMPTY;
-use color::{BLACK, Color, WHITE};
-use std::logging::log;
+use ::utils::{query_bit, toggle_bit};
+use ::piece::EMPTY;
+use ::color::{BLACK, Color, WHITE};
+use ::std::logging::log;
 
 // TODO: Add a BitMap struct (use a tuple struct when available)
 pub struct BitMap {

@@ -1,16 +1,10 @@
-library knight;
+library;
 
-dep bitboard;
-dep bitmap;
-dep board;
-dep color;
-dep move;
-
-use bitboard::BitBoard;
-use bitmap::{BitMap, BLANK};
-use board::Board;
-use color::*;
-use move::Move;
+use ::bitboard::BitBoard;
+use ::bitmap::{BitMap, BLANK};
+use ::board::Board;
+use ::color::*;
+use ::move::Move;
 
 pub fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
     let mut attacks = BitMap::from_u64(0);
@@ -67,5 +61,5 @@ pub fn knight_attacks(bits: BitBoard, color: Color) -> BitMap {
     attacks
 }
 
-    // TODO: Implement me !
+// TODO: Implement me !
 pub fn knight_validation(board: Board, move: Move) {}

@@ -1,19 +1,11 @@
-library pawn;
+library;
 
-dep bitboard;
-dep bitmap;
-dep board;
-dep color;
-dep utils;
-dep move;
-dep piece;
-
-use bitboard::BitBoard;
-use bitmap::{BitMap, BLANK, FILE_H, FILE_A};
-use board::Board;
-use color::*;
-use move::Move;
-use piece::*;
+use ::bitboard::BitBoard;
+use ::bitmap::{BitMap, BLANK, FILE_A, FILE_H};
+use ::board::Board;
+use ::color::*;
+use ::move::Move;
+use ::piece::*;
 
 pub fn pawn_attacks(bits: BitBoard, color: Color) -> BitMap {
     match color {
@@ -30,17 +22,17 @@ pub fn pawn_validation(board: Board, move: Move) {
     let black_pawn_attacks = pawn_attacks(board.bitboard, BLACK);
 
     // if File == File::A  {
-                // there can be no captures to the west
-            // }
-            // if File == File::H {
-                // there can be no captures to the east
-            // }
-            // if (Rank == Rank::2 && color == WHITE) ||  (Rank == Rank::7 && color == BLACK){
-                // pawn can move 1 or 2 spaces FORWARD (forward is relative !)
-            // }
-            // if (Rank == Rank::2 && color == BLACK) ||  (Rank == Rank::7 && color == WHITE){
-                // promotion is possible
-            // }
+    // there can be no captures to the west
+    // }
+    // if File == File::H {
+    // there can be no captures to the east
+    // }
+    // if (Rank == Rank::2 && color == WHITE) ||  (Rank == Rank::7 && color == BLACK){
+    // pawn can move 1 or 2 spaces FORWARD (forward is relative !)
+    // }
+    // if (Rank == Rank::2 && color == BLACK) ||  (Rank == Rank::7 && color == WHITE){
+    // promotion is possible
+    // }
     assert(move.dest.to_index() == move.source.to_index() + 7 || move.dest.to_index() == move.source.to_index() + 8 || move.dest.to_index() == move.source.to_index() + 9 || move.dest.to_index() == move.source.to_index() + 15 || move.dest.to_index() == move.source.to_index() + 16 || move.dest.to_index() == move.source.to_index() + 17);
 
     // if move is a pawn promotion:
@@ -70,7 +62,7 @@ pub fn pawn_validation(board: Board, move: Move) {
     };
     // check en_passant target:
     // if move.is_en_passant() {
-        // check legality
-        // check metadata for en_passant target, ensure match with move.dest
+    // check legality
+    // check metadata for en_passant target, ensure match with move.dest
     // };
 }

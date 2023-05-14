@@ -7,7 +7,10 @@ use std::{
         contract_id,
         msg_asset_id,
     },
-    constants::{ZERO_B256, BASE_ASSET_ID},
+    constants::{
+        BASE_ASSET_ID,
+        ZERO_B256,
+    },
     context::msg_amount,
     hash::keccak256,
 };
@@ -18,7 +21,7 @@ storage {
     // mapping of game_id => Game. game_ids are globally unique
     games: StorageMap<b256, Game> = StorageMap {},
     // mapping of Player1 => Player2 => match_number
-    salts: StorageMap<(Identity, Identity), u64> = StorageMap {},
+    salts: StorageMap<Identity, StorageMap<Identity, u64>> = StorageMap {},
 }
 
 impl Chess for Contract {
@@ -26,8 +29,8 @@ impl Chess for Contract {
     #[payable]
     fn start_new_game(player1: Identity, player2: Identity, bond: Option<u64>) -> b256 {
         // increment the previous game salt
-        let salt = storage.salts.get((player1, player2)).unwrap() + 1;
-        storage.salts.insert((player1, player2), salt);
+        let salt = storage.salts.get(player1).get(player2).read();
+        storage.salts.get(player1).insert(player2, salt + 1);
 
         let status = match bond {
             // free play, no bond required.

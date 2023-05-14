@@ -1,16 +1,11 @@
-library king;
+library;
 
-dep bitboard;
-dep bitmap;
-dep board;
-dep color;
-dep move;
 
-use bitboard::BitBoard;
-use bitmap::{BitMap, BLANK};
-use board::Board;
-use color::*;
-use move::Move;
+use ::bitboard::BitBoard;
+use ::bitmap::{BitMap, BLANK};
+use ::board::Board;
+use ::color::*;
+use ::move::Move;
 
 pub fn king_attacks(bits: BitBoard, color: Color) -> BitMap {
     let king_bit = match color {
