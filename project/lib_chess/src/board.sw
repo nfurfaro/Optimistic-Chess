@@ -1,15 +1,5 @@
 library;
 
-// pub mod bitboard;
-// pub mod bitmap;
-// pub mod color;
-// pub mod errors;
-// pub mod move;
-// pub mod piece;
-// pub mod special;
-// pub mod square;
-// pub mod utils;
-
 use ::bitboard::BitBoard;
 use ::bitmap::*;
 use ::color::{BLACK, Color, WHITE};
@@ -18,24 +8,15 @@ use ::move::Move;
 use ::piece::{BISHOP, EMPTY, KING, KNIGHT, PAWN, Piece, QUEEN, ROOK};
 use ::special::CastleRights;
 use ::square::Square;
-use ::utils::{b256_multimask, compose, decompose, multi_bit_mask, query_bit, toggle_bit, turn_on_bit};
-/**
-
-note: for more detail about how pieces are encoded, see ./piece.sw
-
-Initial board state:
-
-    0011 0100 0010 0101 0110 0010 0100 0011
-    0001 0001 0001 0001 0001 0001 0001 0001
-    0000 0000 0000 0000 0000 0000 0000 0000
-    0000 0000 0000 0000 0000 0000 0000 0000
-    0000 0000 0000 0000 0000 0000 0000 0000
-    0000 0000 0000 0000 0000 0000 0000 0000
-    1001 1001 1001 1001 1001 1001 1001 1001
-    1011 1100 1010 1101 1110 1010 1100 1011
-
-4 bits per piece * 64 squares = 256 bits to store all pieces.
-*/
+use ::utils::{
+    b256_multimask,
+    compose,
+    decompose,
+    multi_bit_mask,
+    query_bit,
+    toggle_bit,
+    turn_on_bit,
+};
 // HEX equivalent of the above starting board state
 pub const INITIAL_PIECEMAP: b256 = 0x34256243111111110000000000000000000000000000000099999999BCADEACB;
 pub const INITIAL_METADATA: u64 = 0b00000000_00000000_00000000_00000000_00001111_00000000_00000000_00000001;
@@ -92,7 +73,7 @@ impl Board {
         Board::build(self.piecemap, self.bitboard, self.metadata & EN_PASSANT_CLEARING_MASK)
     }
 
-     // clear 1 nibble corresponding to a specific square's index from a piecemap
+    // clear 1 nibble corresponding to a specific square's index from a piecemap
     pub fn clear_square(self, square: Square) -> Board {
         let mut index = square.to_index();
         // create a mask of all 1's except 4 0's on the target nibble.
@@ -395,7 +376,6 @@ impl Board {
 
 //////////////////////////////////////////////////////////////////
 /// TESTS
-//////////////////////////////////////////////////////////////////
 #[test()]
 fn test_new_board() {
     let board = Board::new();

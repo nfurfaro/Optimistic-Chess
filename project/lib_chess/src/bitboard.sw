@@ -1,6 +1,5 @@
 library;
 
-// mod bitmap;
 use ::bitmap::*;
 
 /// The BitBoard type can be thought of as a stack of layers
@@ -65,7 +64,6 @@ impl BitBoard {
 
 //////////////////////////////////////////////////////////////////
 /// TESTS
-//////////////////////////////////////////////////////////////////
 #[test()]
 fn test_new_bitboard() {
     let board = BitBoard::new();

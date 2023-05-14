@@ -1,6 +1,5 @@
 library;
 
-// mod errors;
 
 use ::errors::ChessError;
 

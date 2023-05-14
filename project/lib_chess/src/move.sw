@@ -1,8 +1,5 @@
 library;
 
-// mod square;
-// mod piece;
-
 use ::square::Square;
 use ::piece::Piece;
 
@@ -10,14 +7,14 @@ use ::piece::Piece;
 // by players when making moves offchain.
 pub struct Move {
     target: ContractId, // replay prevention
-    nonce: u64,         // replay prevention
-    game_id: b256,      // hash(player1_address, player2_address, game_number)
+    nonce: u64, // replay prevention
+    game_id: b256, // hash(player1_address, player2_address, game_number)
     piecemap: b256,
     metadata: u64,
     source: Square,
     dest: Square,
     promotion: Option<Piece>,
-    sequence: u64,       // seq must always be >= to stored seq for this game: https://programtheblockchain.com/posts/2018/05/11/state-channels-for-two-player-games/
+    sequence: u64, // seq must always be >= to stored seq for this game: https://programtheblockchain.com/posts/2018/05/11/state-channels-for-two-player-games/
 }
 
 impl Move {
@@ -46,18 +43,17 @@ impl Move {
     }
 
     pub fn is_castling(self) -> bool {
-
         // TODO: Implement me !
         // if piece being moved is a king
         // if Black king moves to either g8 (KS) or c8 (QS)
         // if White king moves to either g1 (KS) or c1 (QS)
         // if black
-          // if src == e8
-            // if rights
-            //   match self.dest {
-            //     Square::g8 => , // (king side)
-            //     Square::c8 => , // (queen side)
-            //   }
+        // if src == e8
+        // if rights
+        //   match self.dest {
+        //     Square::g8 => , // (king side)
+        //     Square::c8 => , // (queen side)
+        //   }
         false
     }
     pub fn is_en_passant(self) -> bool {

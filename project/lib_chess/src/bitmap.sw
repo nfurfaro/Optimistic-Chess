@@ -1,8 +1,5 @@
 library;
 
-// mod utils;
-// mod piece;
-
 use ::utils::{query_bit, toggle_bit};
 use ::piece::EMPTY;
 use std::logging::log;

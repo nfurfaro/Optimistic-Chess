@@ -1,7 +1,7 @@
 library;
 
 use std::b512::B512;
-use lib_chess::{game::Game, move::Move, events::*,};
+use lib_chess::{events::*, game::Game, move::Move};
 
 abi Chess {
     /// Create a new game between 2 players. Can be called by anyone.
@@ -37,5 +37,4 @@ abi Chess {
 
     // #[storage(read, write)]
     // fn claim_winnings(game_id: b256);
-
 }

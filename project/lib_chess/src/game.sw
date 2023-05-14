@@ -1,9 +1,5 @@
 library;
 
-// mod board;
-// mod color;
-// mod piece;
-
 use ::board::Board;
 use ::color::{BLACK, Color, WHITE};
 use std::{call_frames::contract_id, hash::keccak256};
@@ -11,8 +7,8 @@ use std::{call_frames::contract_id, hash::keccak256};
 // TODO: add methods to convert to & from a status code, i.e:
 // 0, 1, 2, 3
 pub enum Status {
-    Standby: (),   // at least 1 player has not modosited bond
-    Active: (),    // game on
+    Standby: (), // at least 1 player has not modosited bond
+    Active: (), // game on
     Stalemate: (), // stalemate, game is a draw
     Checkmate: (), // game has a winner
 }

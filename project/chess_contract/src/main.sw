@@ -7,13 +7,16 @@ use std::{
         contract_id,
         msg_asset_id,
     },
-    constants::{ZERO_B256, BASE_ASSET_ID},
+    constants::{
+        BASE_ASSET_ID,
+        ZERO_B256,
+    },
     context::msg_amount,
     hash::keccak256,
 };
 
 storage {
-    // should bond be a config time const ?
+    // TODO: should bond be a config time const ?
     bond: u64 = 42,
     // mapping of game_id => Game. game_ids are globally unique
     games: StorageMap<b256, Game> = StorageMap {},

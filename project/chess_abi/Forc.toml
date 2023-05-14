@@ -5,4 +5,4 @@ license = "Apache-2.0"
 name = "chess_abi"
 
 [dependencies]
-lib_chess = { path = "../lib_chess"}
+lib_chess = { path = "../lib_chess" }

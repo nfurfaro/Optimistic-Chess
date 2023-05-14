@@ -1,17 +1,17 @@
 library;
 
-pub mod utils;
-pub mod errors;
-pub mod color;
-pub mod piece;
-pub mod bitmap;
-pub mod bitboard;
-pub mod special;
-pub mod square;
-pub mod move;
-pub mod board;
-pub mod game;
-pub mod events;
-pub mod validator;
+mod utils;
+mod errors;
+mod color;
+mod piece;
+mod bitmap;
+mod bitboard;
+mod special;
+mod square;
+mod move;
+mod board;
+mod game;
+mod events;
+mod validator;
 
 use std::constants::ZERO_B256;
