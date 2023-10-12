@@ -97,6 +97,7 @@ fn squares_between(src: Square, dest: Square) -> Option<u64> {
     }
 }
 
+// Helpers
 fn max(a: u64, b: u64) -> u64 {
     if a < b { a } else if b > a { b } else { a }
 }
